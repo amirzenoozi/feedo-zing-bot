@@ -2,12 +2,13 @@ import os
 import json
 import feedparser
 import datetime
+
 from dotenv import load_dotenv
 from telegram import Update
 from telegram.ext import Application, CommandHandler, ContextTypes
 
 # Import our custom database functions
-import database_manager
+from scripts import database_manager
 
 # Load environment variables
 load_dotenv()
