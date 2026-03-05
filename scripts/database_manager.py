@@ -15,7 +15,8 @@ def init_db():
         CREATE TABLE IF NOT EXISTS users (
             user_id INTEGER PRIMARY KEY,
             is_subscribed BOOLEAN DEFAULT 0,
-            expiry_date DATETIME
+            expiry_date DATETIME,
+            join_date DATETIME
         )
     ''')
     conn.commit()
@@ -26,7 +27,8 @@ def add_user(user_id):
     # Register a new user or ignore if already exists
     conn = sqlite3.connect(DB_PATH)
     cursor = conn.cursor()
-    cursor.execute('INSERT OR IGNORE INTO users (user_id) VALUES (?)', (user_id,))
+    now = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
+    cursor.execute('INSERT OR IGNORE INTO users (user_id, join_date) VALUES (?, ?)', (user_id, now))
     conn.commit()
     conn.close()
 
@@ -48,11 +50,7 @@ def update_subscription(user_id, days=30):
     new_expiry = datetime.now() + timedelta(days=days)
     conn = sqlite3.connect(DB_PATH)
     cursor = conn.cursor()
-    cursor.execute('''
-        UPDATE users 
-        SET is_subscribed = 1, expiry_date = ? 
-        WHERE user_id = ?
-    ''', (new_expiry.strftime('%Y-%m-%d %H:%M:%S'), user_id))
+    cursor.execute('UPDATE users SET is_subscribed = 1, expiry_date = ? WHERE user_id = ?', (new_expiry.strftime('%Y-%m-%d %H:%M:%S'), user_id))
     conn.commit()
     conn.close()
     return new_expiry
