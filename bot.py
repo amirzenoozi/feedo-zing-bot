@@ -13,6 +13,7 @@ from scripts import database_manager
 # Load environment variables
 load_dotenv()
 TOKEN = os.getenv('TELEGRAM_BOT_TOKEN')
+ADMIN_ID = os.getenv('ADMIN_ID')
 LINKS_PATH = os.path.join("constants", "links.json")
 
 
@@ -50,7 +51,20 @@ async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
 async def send_invoice(update: Update, context: ContextTypes.DEFAULT_TYPE):
     """Sends the Telegram Stars invoice to the user."""
+    user_id = update.effective_user.id
     chat_id = update.effective_chat.id
+
+    # Check if the user is the Admin
+    if str(user_id) == str(ADMIN_ID):
+        # Admin bypass: Activate subscription directly in DB
+        expiry_dt = database_manager.update_subscription(user_id, days=365)  # Give admin 1 year
+        await update.message.reply_text(
+            f"👑 **Admin Mode Activated**\n"
+            f"Your subscription has been manually activated until {expiry_dt.strftime('%Y-%m-%d')}."
+        )
+        return
+
+    # Regular user: Proceed to Telegram Stars Invoice
     title = "Premium News Subscription"
     description = "30 days of automated RSS updates directly to your chat."
     payload = "monthly_news_subscription"
