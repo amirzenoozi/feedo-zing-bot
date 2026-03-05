@@ -10,6 +10,7 @@ WORKDIR /app
 # Using --no-cache-dir keeps the image size minimal
 RUN pip install --no-cache-dir \
     python-telegram-bot \
+    python-telegram-bot[job-queue] \
     feedparser \
     python-dotenv
 
