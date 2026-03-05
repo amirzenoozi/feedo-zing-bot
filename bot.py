@@ -5,7 +5,14 @@ import datetime
 
 from dotenv import load_dotenv
 from telegram import Update, LabeledPrice, InlineKeyboardButton, InlineKeyboardMarkup
-from telegram.ext import Application, CommandHandler, ContextTypes, PreCheckoutQueryHandler, SuccessPaymentHandler
+from telegram.ext import (
+    Application,
+    CommandHandler,
+    ContextTypes,
+    PreCheckoutQueryHandler,
+    MessageHandler,
+    filters
+)
 
 # Import our custom database functions
 from scripts import database_manager
