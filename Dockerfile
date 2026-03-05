@@ -13,10 +13,13 @@ WORKDIR /app
 # Copy only the dependency files first to leverage Docker cache
 COPY pyproject.toml poetry.lock* ./
 
+# Step 2: Create a dummy README (Poetry often requires this to install)
+RUN touch README.md
+
 # Install dependencies using Poetry
-# We disable virtualenv creation because the container itself is an isolated environment
+# We use --no-root to install ONLY libraries without looking for the current project code yet
 RUN poetry config virtualenvs.create false \
-    && poetry install --no-interaction --no-ansi --no-root
+    && poetry install --no-interaction --no-ansi --no-root --no-directory
 
 # Copy the rest of the application code
 COPY . .
@@ -25,4 +28,4 @@ COPY . .
 RUN mkdir -p database constants
 
 # Run the bot script from the scripts folder
-CMD ["python", "scripts/bot.py"]
+CMD ["python", "bot.py"]
