@@ -11,6 +11,7 @@ WORKDIR /app
 RUN pip install --no-cache-dir \
     python-telegram-bot \
     python-telegram-bot[job-queue] \
+    asyncio \
     feedparser \
     python-dotenv
 
