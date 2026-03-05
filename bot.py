@@ -138,7 +138,6 @@ async def successful_payment_callback(update: Update, context: ContextTypes.DEFA
 # --- News Logic ---
 async def send_news_to_chat(chat_id, context):
     """Fetch and send news to a specific chat ID."""
-    import feedparser
     links = get_rss_links()
     if not links:
         await context.bot.send_message(chat_id, "No RSS links configured.")
