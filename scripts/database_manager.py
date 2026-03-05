@@ -16,7 +16,8 @@ def init_db():
             user_id INTEGER PRIMARY KEY,
             is_subscribed BOOLEAN DEFAULT 0,
             expiry_date DATETIME,
-            join_date DATETIME
+            join_date DATETIME,
+            language TEXT DEFAULT 'en'
         )
     ''')
     conn.commit()
@@ -54,3 +55,20 @@ def update_subscription(user_id, days=30):
     conn.commit()
     conn.close()
     return new_expiry
+
+def set_user_language(user_id, lang_code):
+    """Updates the preferred language for a specific user."""
+    conn = sqlite3.connect(DB_PATH)
+    cursor = conn.cursor()
+    cursor.execute('UPDATE users SET language = ? WHERE user_id = ?', (lang_code, user_id))
+    conn.commit()
+    conn.close()
+
+def get_user_language(user_id):
+    """Returns the user's language, defaults to 'en'."""
+    conn = sqlite3.connect(DB_PATH)
+    cursor = conn.cursor()
+    cursor.execute('SELECT language FROM users WHERE user_id = ?', (user_id,))
+    row = cursor.fetchone()
+    conn.close()
+    return row[0] if row and row[0] else 'en'

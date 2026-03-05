@@ -26,6 +26,41 @@ ADMIN_ID = os.getenv('ADMIN_ID')
 LINKS_PATH = os.path.join("constants", "links.json")
 
 
+# --- Localization Data ---
+MESSAGES = {
+    'en': {
+        'start': "Welcome to the RSS News Bot!\n\nTo receive daily updates, you need a subscription.",
+        'sub_btn': "⭐ Subscribe (10 Stars)",
+        'news_btn': "📰 Get News Now",
+        'lang_btn': "🌐 Change Language",
+        'choose_lang': "Please choose your preferred language:",
+        'lang_set': "Language set to English! 🇺🇸",
+        'sub_req': "❌ Subscription required. Please subscribe first.",
+        'fetching': "⏳ Fetching latest news..."
+    },
+    'it': {
+        'start': "Benvenuto nel Bot di Notizie RSS!\n\nPer ricevere aggiornamenti quotidiani, è necessario un abbonamento.",
+        'sub_btn': "⭐ Abbonati (10 Stelle)",
+        'news_btn': "📰 Ricevi Notizie",
+        'lang_btn': "🌐 Cambia Lingua",
+        'choose_lang': "Per favore, scegli la tua lingua preferita:",
+        'lang_set': "Lingua impostata su Italiano! 🇮🇹",
+        'sub_req': "❌ Abbonamento richiesto. Per favore, abbonati prima.",
+        'fetching': "⏳ Recupero delle ultime notizie..."
+    }
+}
+
+# --- Helper Functions ---
+async def get_lang(update: Update, context: ContextTypes.DEFAULT_TYPE) -> str:
+    """Gets language from RAM cache, or DB if not present."""
+    user_id = update.effective_user.id
+    if 'lang' not in context.user_data:
+        # Fallback to DB and store in RAM
+        lang = database_manager.get_user_language(user_id)
+        context.user_data['lang'] = lang
+    return context.user_data['lang']
+
+
 def get_rss_links():
     """Reads the list of RSS feeds from the volume-mapped JSON file."""
     try:
@@ -40,109 +75,102 @@ def get_rss_links():
 
 # --- Bot Commands ---
 async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    """Registers the user and shows the welcome message with a subscription button."""
     user_id = update.effective_user.id
     database_manager.add_user(user_id)
 
+    lang = await get_lang(update, context)
+
     keyboard = [
-        [InlineKeyboardButton("⭐ Subscribe (10 Stars / Month)", callback_data="buy_sub")],
-        [InlineKeyboardButton("📰 Get News Now", callback_data="get_now")]
+        [InlineKeyboardButton(MESSAGES[lang]['sub_btn'], callback_data="buy_sub")],
+        [InlineKeyboardButton(MESSAGES[lang]['news_btn'], callback_data="get_now")],
+        [InlineKeyboardButton(MESSAGES[lang]['lang_btn'], callback_data="show_lang_menu")]
     ]
     reply_markup = InlineKeyboardMarkup(keyboard)
 
+    await update.message.reply_text(MESSAGES[lang]['start'], reply_markup=reply_markup)
+
+
+async def language_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    """Command or menu to change language."""
+    lang = await get_lang(update, context)
+    keyboard = [[
+        InlineKeyboardButton("English 🇺🇸", callback_data="set_lang_en"),
+        InlineKeyboardButton("Italiano 🇮🇹", callback_data="set_lang_it")
+    ]]
     await update.message.reply_text(
-        "Welcome to the RSS News Bot!\n\n"
-        "To receive daily updates, you need an active subscription.\n"
-        "Click the button below to subscribe using Telegram Stars.",
-        reply_markup=reply_markup
+        MESSAGES[lang]['choose_lang'],
+        reply_markup=InlineKeyboardMarkup(keyboard)
     )
 
 
 async def send_invoice(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    """Sends the Telegram Stars invoice to the user."""
     user_id = update.effective_user.id
     chat_id = update.effective_chat.id
 
-    # Check if the user is the Admin
-    if str(user_id) == str(ADMIN_ID):
-        # Admin bypass: Activate subscription directly in DB
-        expiry_dt = database_manager.update_subscription(user_id, days=365)  # Give admin 1 year
-        await update.message.reply_text(
-            f"👑 **Admin Mode Activated**\n"
-            f"Your subscription has been manually activated until {expiry_dt.strftime('%Y-%m-%d')}."
+    if ADMIN_ID and str(user_id) == str(ADMIN_ID):
+        expiry_dt = database_manager.update_subscription(user_id, days=365)
+        await (update.callback_query.message if update.callback_query else update.message).reply_text(
+            f"👑 Admin Mode: Active until {expiry_dt.strftime('%Y-%m-%d')}."
         )
         return
 
-    # Regular user: Proceed to Telegram Stars Invoice
-    title = "Premium News Subscription"
-    description = "30 days of automated RSS updates directly to your chat."
-    payload = "monthly_news_subscription"
-    currency = "XTR"  # Currency code for Telegram Stars
-    price = 10
-    prices = [LabeledPrice("Monthly Plan", price)]
-
+    prices = [LabeledPrice("Monthly Plan", 10)]
     await context.bot.send_invoice(
         chat_id=chat_id,
-        title=title,
-        description=description,
-        payload=payload,
-        provider_token="",  # Leave empty for Telegram Stars
-        currency=currency,
+        title="Premium Subscription",
+        description="30 days of RSS updates.",
+        payload="monthly_news_subscription",
+        provider_token="",
+        currency="XTR",
         prices=prices
     )
 
 
-# --- Callback Handling (The missing link) ---
+# --- Callback Handling ---
 async def button_tap_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    """Handles clicks on inline keyboard buttons."""
     query = update.callback_query
     user_id = update.effective_user.id
     await query.answer()
 
+    lang = await get_lang(update, context)
+
     if query.data == "buy_sub":
         await send_invoice(update, context)
 
+    elif query.data == "show_lang_menu":
+        keyboard = [[
+            InlineKeyboardButton("English 🇺🇸", callback_data="set_lang_en"),
+            InlineKeyboardButton("Italiano 🇮🇹", callback_data="set_lang_it")
+        ]]
+        await query.message.edit_text(MESSAGES[lang]['choose_lang'], reply_markup=InlineKeyboardMarkup(keyboard))
+
+    elif query.data.startswith("set_lang_"):
+        new_lang = query.data.split("_")[-1]
+        database_manager.set_user_language(user_id, new_lang)
+        context.user_data['lang'] = new_lang
+        await query.message.edit_text(MESSAGES[new_lang]['lang_set'])
+
     elif query.data == "get_now":
         subscribers = database_manager.get_active_subscribers()
-        # Allow if user is subscribed OR is the Admin
         if user_id in subscribers or (ADMIN_ID and str(user_id) == str(ADMIN_ID)):
-            await query.message.reply_text("⏳ Fetching latest news for you...")
-            # Trigger the broadcast logic specifically for this chat
+            await query.message.reply_text(MESSAGES[lang]['fetching'])
             await send_news_to_chat(query.message.chat_id, context)
         else:
-            await query.message.reply_text("❌ Subscription required. Please click 'Subscribe' first.")
+            await query.message.reply_text(MESSAGES[lang]['sub_req'])
 
 
 # --- Payment Handling ---
 async def precheckout_callback(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    """Answers the pre-checkout query to confirm the transaction."""
-    query = update.pre_checkout_query
-    if query.invoice_payload != "monthly_news_subscription":
-        await query.answer(ok=False, error_message="Invalid payload.")
-    else:
-        await query.answer(ok=True)
-
+    await update.pre_checkout_query.answer(ok=True)
 
 async def successful_payment_callback(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    """Triggered after a successful Telegram Stars payment."""
     user_id = update.effective_user.id
-    # Update DB with 30 days subscription
     expiry_dt = database_manager.update_subscription(user_id, days=30)
-
-    await update.message.reply_text(
-        f"✅ Payment successful! Your subscription is now active.\n"
-        f"📅 Expiry date: {expiry_dt.strftime('%Y-%m-%d')}"
-    )
+    await update.message.reply_text(f"✅ Active until: {expiry_dt.strftime('%Y-%m-%d')}")
 
 
-# --- News Logic ---
 async def send_news_to_chat(chat_id, context):
-    """Fetch and send news to a specific chat ID."""
     links = get_rss_links()
-    if not links:
-        await context.bot.send_message(chat_id, "No RSS links configured.")
-        return
-
     for source in links:
         feed = feedparser.parse(source['url'])
         if feed.entries:
@@ -153,13 +181,10 @@ async def send_news_to_chat(chat_id, context):
             await asyncio.sleep(0.1)
 
 async def daily_broadcast(context: ContextTypes.DEFAULT_TYPE):
-    """Job to send news to all active subscribers."""
     subscribers = database_manager.get_active_subscribers()
     for user_id in subscribers:
-        try:
-            await send_news_to_chat(user_id, context)
-        except Exception as e:
-            print(f"Failed sending to {user_id}: {e}")
+        try: await send_news_to_chat(user_id, context)
+        except: pass
 
 
 # --- Main Application ---
@@ -177,6 +202,7 @@ if __name__ == '__main__':
     # Handlers
     application.add_handler(CommandHandler("start", start))
     application.add_handler(CommandHandler("subscribe", send_invoice))
+    application.add_handler(CommandHandler("language", language_command))
 
     # Payment Handlers
     application.add_handler(CallbackQueryHandler(button_tap_handler))
