@@ -1,0 +1,10 @@
+{
+    "start": "Welcome to the RSS News Bot!\n\nTo receive daily updates, you need a subscription.",
+    "sub_btn": "⭐ Subscribe (10 Stars)",
+    "news_btn": "📰 Get News Now",
+    "lang_btn": "🌐 Change Language",
+    "choose_lang": "Please choose your preferred language:",
+    "lang_set": "Language set to English! 🇺🇸",
+    "sub_req": "❌ Subscription required. Please subscribe first.",
+    "fetching": "⏳ Fetching latest news..."
+}

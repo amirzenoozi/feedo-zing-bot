@@ -1,0 +1,10 @@
+{
+    "start": "Benvenuto nel Bot di Notizie RSS!\n\nPer ricevere aggiornamenti quotidiani, è necessario un abbonamento.",
+    "sub_btn": "⭐ Abbonati (10 Stelle)",
+    "news_btn": "📰 Ricevi Notizie",
+    "lang_btn": "🌐 Cambia Lingua",
+    "choose_lang": "Per favore, scegli la tua lingua preferita:",
+    "lang_set": "Lingua impostata su Italiano! 🇮🇹",
+    "sub_req": "❌ Abbonamento richiesto. Per favore, abbonati prima.",
+    "fetching": "⏳ Recupero delle ultime notizie..."
+}

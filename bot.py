@@ -18,37 +18,21 @@ from telegram.ext import (
 
 # Import our custom database functions
 from scripts import database_manager
+from scripts.utils import load_all_locales
 
 # Load environment variables
 load_dotenv()
+BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 TOKEN = os.getenv('TELEGRAM_BOT_TOKEN')
 ADMIN_ID = os.getenv('ADMIN_ID')
 LINKS_PATH = os.path.join("constants", "links.json")
 
 
 # --- Localization Data ---
-MESSAGES = {
-    'en': {
-        'start': "Welcome to the RSS News Bot!\n\nTo receive daily updates, you need a subscription.",
-        'sub_btn': "⭐ Subscribe (10 Stars)",
-        'news_btn': "📰 Get News Now",
-        'lang_btn': "🌐 Change Language",
-        'choose_lang': "Please choose your preferred language:",
-        'lang_set': "Language set to English! 🇺🇸",
-        'sub_req': "❌ Subscription required. Please subscribe first.",
-        'fetching': "⏳ Fetching latest news..."
-    },
-    'it': {
-        'start': "Benvenuto nel Bot di Notizie RSS!\n\nPer ricevere aggiornamenti quotidiani, è necessario un abbonamento.",
-        'sub_btn': "⭐ Abbonati (10 Stelle)",
-        'news_btn': "📰 Ricevi Notizie",
-        'lang_btn': "🌐 Cambia Lingua",
-        'choose_lang': "Per favore, scegli la tua lingua preferita:",
-        'lang_set': "Lingua impostata su Italiano! 🇮🇹",
-        'sub_req': "❌ Abbonamento richiesto. Per favore, abbonati prima.",
-        'fetching': "⏳ Recupero delle ultime notizie..."
-    }
-}
+# Define paths and preferences
+LOCALES_PATH = os.path.join(BASE_DIR, "locales")
+SUPPORTED_LANGUAGES = ['en', 'it']
+MESSAGES = load_all_locales(LOCALES_PATH, SUPPORTED_LANGUAGES)
 
 # --- Helper Functions ---
 async def get_lang(update: Update, context: ContextTypes.DEFAULT_TYPE) -> str:
