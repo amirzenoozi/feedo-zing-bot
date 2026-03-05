@@ -2,6 +2,7 @@ import os
 import json
 import feedparser
 import datetime
+import asyncio
 
 from dotenv import load_dotenv
 from telegram import Update, LabeledPrice, InlineKeyboardButton, InlineKeyboardMarkup
@@ -9,6 +10,7 @@ from telegram.ext import (
     Application,
     CommandHandler,
     ContextTypes,
+    CallbackQueryHandler,
     PreCheckoutQueryHandler,
     MessageHandler,
     filters
@@ -90,6 +92,27 @@ async def send_invoice(update: Update, context: ContextTypes.DEFAULT_TYPE):
     )
 
 
+# --- Callback Handling (The missing link) ---
+async def button_tap_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    """Handles clicks on inline keyboard buttons."""
+    query = update.callback_query
+    user_id = update.effective_user.id
+    await query.answer()
+
+    if query.data == "buy_sub":
+        await send_invoice(update, context)
+
+    elif query.data == "get_now":
+        subscribers = database_manager.get_active_subscribers()
+        # Allow if user is subscribed OR is the Admin
+        if user_id in subscribers or (ADMIN_ID and str(user_id) == str(ADMIN_ID)):
+            await query.message.reply_text("⏳ Fetching latest news for you...")
+            # Trigger the broadcast logic specifically for this chat
+            await send_news_to_chat(query.message.chat_id, context)
+        else:
+            await query.message.reply_text("❌ Subscription required. Please click 'Subscribe' first.")
+
+
 # --- Payment Handling ---
 async def precheckout_callback(update: Update, context: ContextTypes.DEFAULT_TYPE):
     """Answers the pre-checkout query to confirm the transaction."""
@@ -112,36 +135,32 @@ async def successful_payment_callback(update: Update, context: ContextTypes.DEFA
     )
 
 
-# --- Daily Broadcast Task ---
-async def daily_broadcast(context: ContextTypes.DEFAULT_TYPE):
-    """Scheduled task to send news to all active subscribers."""
+# --- News Logic ---
+async def send_news_to_chat(chat_id, context):
+    """Fetch and send news to a specific chat ID."""
+    import feedparser
     links = get_rss_links()
-    subscribers = database_manager.get_active_subscribers()
-
-    if not links or not subscribers:
+    if not links:
+        await context.bot.send_message(chat_id, "No RSS links configured.")
         return
 
     for source in links:
         feed = feedparser.parse(source['url'])
-        if not feed.entries:
-            continue
+        if feed.entries:
+            msg = f"📌 *{source['name']}*\n\n"
+            for entry in feed.entries[:3]:
+                msg += f"• {entry.title}\n🔗 {entry.link}\n\n"
+            await context.bot.send_message(chat_id, msg, parse_mode='Markdown', disable_web_page_preview=True)
+            await asyncio.sleep(0.1)
 
-        # Prepare the summary message
-        msg = f"📌 *Latest from {source['name']}*:\n\n"
-        for entry in feed.entries[:3]:  # Send top 3 articles
-            msg += f"• {entry.title}\n🔗 {entry.link}\n\n"
-
-        for user_id in subscribers:
-            try:
-                await context.bot.send_message(
-                    chat_id=user_id,
-                    text=msg,
-                    parse_mode='Markdown',
-                    disable_web_page_preview=True
-                )
-                await asyncio.sleep(0.05)  # Small delay to avoid rate limiting
-            except Exception as e:
-                print(f"Error sending to {user_id}: {e}")
+async def daily_broadcast(context: ContextTypes.DEFAULT_TYPE):
+    """Job to send news to all active subscribers."""
+    subscribers = database_manager.get_active_subscribers()
+    for user_id in subscribers:
+        try:
+            await send_news_to_chat(user_id, context)
+        except Exception as e:
+            print(f"Failed sending to {user_id}: {e}")
 
 
 # --- Main Application ---
@@ -161,6 +180,7 @@ if __name__ == '__main__':
     application.add_handler(CommandHandler("subscribe", send_invoice))
 
     # Payment Handlers
+    application.add_handler(CallbackQueryHandler(button_tap_handler))
     application.add_handler(PreCheckoutQueryHandler(precheckout_callback))
     application.add_handler(MessageHandler(filters.SUCCESSFUL_PAYMENT, successful_payment_callback))
 
@@ -171,5 +191,5 @@ if __name__ == '__main__':
         time=datetime.time(hour=9, minute=0, second=0)
     )
 
-    print("Bot is starting...")
+    print("Bot is live with Admin Mode and Stars Payment.")
     application.run_polling()
