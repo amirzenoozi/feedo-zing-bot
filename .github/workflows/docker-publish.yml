@@ -3,7 +3,7 @@ name: Build and Push to Docker Hub
 on:
   push:
     branches:
-      - main  # Runs only when you push to the main branch
+      - main
 
 jobs:
   build-and-push:
@@ -27,9 +27,7 @@ jobs:
         with:
           context: .
           push: true
-          # Replace 'your-username' with your actual Docker Hub username
-          # Replace 'rss-bot' with your desired repository name
-          tags: ${{ secrets.DOCKERHUB_USERNAME }}/rss-bot:latest
+          tags: ${{ secrets.DOCKERHUB_USERNAME }}/feedo-zing:latest
 
       - name: Image digest
         run: echo ${{ steps.docker_build.outputs.digest }}
