@@ -1,0 +1,32 @@
+{
+  "supported_links": [
+    {
+      "name": "Verge",
+      "url": "https://www.theverge.com/rss/index.xml"
+    },
+    {
+      "name": "Hacker News",
+      "url": "https://news.ycombinator.com/rss"
+    },
+    {
+      "name": "NASA",
+      "url": "https://www.nasa.gov/rss/dyn/breaking_news.rss"
+    },
+    {
+      "name": "BBC News",
+      "url": "https://feeds.bbci.co.uk/news/rss.xml"
+    },
+    {
+      "name": "CNN",
+      "url": "https://rss.cnn.com/rss/cnn_topstories.rss"
+    },
+    {
+      "name": "TechCrunch",
+      "url": "https://techcrunch.com/feed/"
+    },
+    {
+      "name": "Wall Street Journal",
+      "url": "https://feeds.a.dj.com/rss/RSSWorldNews.xml"
+    }
+  ]
+}
