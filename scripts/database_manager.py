@@ -75,6 +75,17 @@ def get_user_language(user_id):
     conn.close()
     return row[0] if row and row[0] else 'en'
 
+
+def is_user_premium(user_id):
+    conn = sqlite3.connect(DB_PATH)
+    cursor = conn.cursor()
+    # Check for an active subscription/stars record
+    cursor.execute('SELECT is_subscribed FROM users WHERE user_id = ?', (user_id,))
+    row = cursor.fetchone()
+    conn.close()
+    return bool(row[0]) if row else False
+
+
 def get_available_feeds():
     conn = sqlite3.connect(DB_PATH)
     cursor = conn.cursor()
@@ -91,6 +102,7 @@ def get_user_selected_feeds(user_id):
     rows = cursor.fetchall()
     conn.close()
     return rows
+
 
 def get_random_feeds(limit=1):
     """Returns a list of random active feeds (id, name, url)."""
