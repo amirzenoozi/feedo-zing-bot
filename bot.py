@@ -100,7 +100,7 @@ async def user_feeds_command(update: Update, context: ContextTypes.DEFAULT_TYPE)
 
     await update.message.reply_text(
         text,
-        reply_markup=get_feeds_keyboard(user_id, page=0)
+        reply_markup=get_settings_main_keyboard()
     )
 
 
@@ -173,19 +173,14 @@ def get_settings_main_keyboard():
     return InlineKeyboardMarkup(keyboard)
 
 
-def get_feeds_keyboard(user_id, page=0, items_per_page=6, mode="presets"):
+def get_feeds_keyboard(user_id, page=0, items_per_page=6):
     """
     Generates paginated keyboard.
     Mode 'presets' shows official feeds.
     Mode 'custom' shows only feeds created by this user.
     """
-    if mode == "presets":
-        # Only official feeds (generated_user_id IS NULL)
-        all_feeds = database_manager.get_official_feeds()
-    else:
-        # Only user-created feeds
-        all_feeds = database_manager.get_user_created_feeds(user_id)
-
+    # Use the new unified query
+    all_feeds = database_manager.get_available_feeds(user_id)
     selected_feeds = [f[0] for f in database_manager.get_user_selected_feeds(user_id)]
 
     start = page * items_per_page
@@ -277,10 +272,7 @@ async def button_tap_handler(update: Update, context: ContextTypes.DEFAULT_TYPE)
 
     # 1. Main Navigation
     if data == "view_presets_0":
-        await query.message.edit_reply_markup(reply_markup=get_feeds_keyboard(user_id, page=0, mode="presets"))
-
-    elif data == "view_custom_0":
-        await query.message.edit_reply_markup(reply_markup=get_feeds_keyboard(user_id, page=0, mode="custom"))
+        await query.message.edit_reply_markup(reply_markup=get_feeds_keyboard(user_id, page=0))
 
     elif data == "back_to_settings_main":
         await query.message.edit_reply_markup(reply_markup=get_settings_main_keyboard())
@@ -439,7 +431,10 @@ if __name__ == '__main__':
             WAITING_FOR_RSS_NAME: [MessageHandler(filters.TEXT & ~filters.COMMAND, handle_custom_name)],
             WAITING_FOR_RSS_URL: [MessageHandler(filters.TEXT & ~filters.COMMAND, handle_custom_url)],
         },
-        fallbacks=[CommandHandler("cancel", cancel_conversation), CallbackQueryHandler(cancel_conversation, pattern="^cancel_settings$")],
+        fallbacks=[
+            CommandHandler("cancel", cancel_conversation),
+            CallbackQueryHandler(cancel_conversation, pattern="^cancel_settings$")
+        ],
         allow_reentry=True
     )
 

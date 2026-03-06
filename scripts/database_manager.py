@@ -86,6 +86,20 @@ def is_user_premium(user_id):
     return bool(row[0]) if row else False
 
 
+def get_available_feeds(user_id):
+    """
+    Fetches all official feeds AND feeds created by this specific user.
+    """
+    conn = sqlite3.connect(DB_PATH)
+    cursor = conn.cursor()
+    # Official feeds have NULL as user_id. Custom feeds match the user_id.
+    query = "SELECT id, name FROM feeds WHERE (generated_user_id IS NULL OR generated_user_id = ?) AND is_active = 1"
+    cursor.execute(query, (user_id,))
+    rows = cursor.fetchall()
+    conn.close()
+    return rows
+
+
 def get_official_feeds():
     conn = sqlite3.connect(DB_PATH)
     cursor = conn.cursor()
