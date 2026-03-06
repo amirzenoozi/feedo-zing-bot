@@ -61,7 +61,7 @@ def get_rss_links():
 
 
 # --- Bot Commands ---
-async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
+async def start_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
     user_id = update.effective_user.id
     database_manager.add_user(user_id)
 
@@ -90,7 +90,7 @@ async def language_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
     )
 
 
-async def user_feeds(update: Update, context: ContextTypes.DEFAULT_TYPE):
+async def user_feeds_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
     """Opens the feed selection menu."""
     user_id = update.effective_user.id
     lang = await get_lang(update, context)
@@ -103,7 +103,7 @@ async def user_feeds(update: Update, context: ContextTypes.DEFAULT_TYPE):
     )
 
 
-async def send_invoice(update: Update, context: ContextTypes.DEFAULT_TYPE):
+async def send_invoice_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
     user_id = update.effective_user.id
     chat_id = update.effective_chat.id
 
@@ -124,6 +124,42 @@ async def send_invoice(update: Update, context: ContextTypes.DEFAULT_TYPE):
         currency="XTR",
         prices=prices
     )
+
+
+async def get_news_now_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    """
+    Fetches and sends news immediately ONLY for premium users.
+    Free users are prompted to subscribe.
+    """
+    user_id = update.effective_user.id
+    lang = await get_lang(update, context)
+
+    # 1. Check if user is premium
+    is_premium = database_manager.is_user_premium(user_id)
+
+    if is_premium:
+        # Inform them it's coming (parsing can take a few seconds)
+        wait_text = MESSAGES[lang]['fetching']
+        wait_msg = await update.message.reply_text(wait_text)
+
+        # Call the existing modular function
+        await send_news_to_chat(user_id, context, feed_cache={})
+
+        # Clean up the "Fetching..." message
+        await wait_msg.delete()
+    else:
+        # 2. Handle Free Users
+        sub_text = MESSAGES[lang]['upgrade_your_plan']
+        sub_btn_text = MESSAGES[lang]['sub_btn']
+
+        keyboard = InlineKeyboardMarkup([
+            [InlineKeyboardButton(sub_btn_text, callback_data="buy_sub")]
+        ])
+
+        await update.message.reply_text(
+            sub_text,
+            reply_markup=keyboard
+        )
 
 
 def get_feeds_keyboard(user_id, page=0, items_per_page=6):
@@ -313,10 +349,11 @@ if __name__ == '__main__':
     application = Application.builder().token(TOKEN).build()
 
     # Handlers
-    application.add_handler(CommandHandler("start", start))
-    application.add_handler(CommandHandler("subscribe", send_invoice))
+    application.add_handler(CommandHandler("start", start_command))
+    application.add_handler(CommandHandler("subscribe", send_invoice_command))
     application.add_handler(CommandHandler("language", language_command))
-    application.add_handler(CommandHandler("feeds", user_feeds))
+    application.add_handler(CommandHandler("feeds", user_feeds_command))
+    application.add_handler(CommandHandler("get_now", get_news_now_command))
 
     # Payment Handlers
     application.add_handler(CallbackQueryHandler(button_tap_handler))
