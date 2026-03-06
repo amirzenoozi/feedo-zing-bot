@@ -9,5 +9,6 @@
     "fetching": "⏳ Recupero delle ultime notizie...",
     "random_news": "🎲 *Suggeriti per te:* (Non hai ancora scelto i feed)",
     "feeds_selection": "Scegli i tuoi feed:\n(Gratis: {free} feed | Premium: {premium} feed)",
-    "saved_feeds_settings": "💾 Impostazioni salvate!"
+    "saved_feeds_settings": "💾 Impostazioni salvate!",
+    "upgrade_your_plan": "🚀 Per utilizzare questa funzione, è necessario aggiornare il tuo piano."
 }

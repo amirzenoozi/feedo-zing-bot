@@ -9,5 +9,6 @@
     "fetching": "⏳ Fetching latest news...",
     "random_news": "🎲 *Suggested for you:* (You haven't picked feeds yet)",
     "feeds_selection": "Select your feeds:\n(Free: {free} feeds | Premium: {premium} feeds)",
-    "saved_feeds_settings": "💾 Settings saved!"
+    "saved_feeds_settings": "💾 Settings saved!",
+    "upgrade_your_plan": "🚀 To use this feature, you need to upgrade your plan."
 }
