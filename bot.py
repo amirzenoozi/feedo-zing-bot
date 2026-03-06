@@ -90,6 +90,18 @@ async def language_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
     )
 
 
+async def user_feeds(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    """Opens the feed selection menu."""
+    user_id = update.effective_user.id
+    lang = await get_lang(update, context)
+
+    text = MESSAGES[lang]['feeds_selection'].format(free=FREEMIUM_FEEDS_LIMIT, premium=PREMIUM_FEEDS_LIMIT)
+
+    await update.message.reply_text(
+        text,
+        reply_markup=get_feeds_keyboard(user_id, page=0)
+    )
+
 async def send_invoice(update: Update, context: ContextTypes.DEFAULT_TYPE):
     user_id = update.effective_user.id
     chat_id = update.effective_chat.id
@@ -113,15 +125,71 @@ async def send_invoice(update: Update, context: ContextTypes.DEFAULT_TYPE):
     )
 
 
+def get_feeds_keyboard(user_id, page=0, items_per_page=6):
+    """Generates a paginated keyboard of feeds with selection indicators."""
+    all_feeds = database_manager.get_available_feeds()  # List of (id, name)
+    selected_feeds = [f[0] for f in database_manager.get_user_selected_feeds(user_id)]
+
+    # Calculate pagination
+    start = page * items_per_page
+    end = start + items_per_page
+    current_page_feeds = all_feeds[start:end]
+
+    keyboard = []
+    for f_id, f_name in current_page_feeds:
+        # Show a checkmark if the user has already selected this feed
+        status = "✅" if f_id in selected_feeds else "❌"
+        keyboard.append([InlineKeyboardButton(f"{status} {f_name}", callback_data=f"toggle_{f_id}_{page}")])
+
+    # Navigation Row
+    nav_row = []
+    if page > 0:
+        nav_row.append(InlineKeyboardButton("⬅️ Prev", callback_data=f"page_{page - 1}"))
+    if end < len(all_feeds):
+        nav_row.append(InlineKeyboardButton("Next ➡️", callback_data=f"page_{page + 1}"))
+
+    if nav_row:
+        keyboard.append(nav_row)
+
+    # Cancel/Done Button
+    keyboard.append([InlineKeyboardButton("Done / Cancel 🚪", callback_data="cancel_settings")])
+
+    return InlineKeyboardMarkup(keyboard)
+
+
 # --- Callback Handling ---
 async def button_tap_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
     query = update.callback_query
     user_id = update.effective_user.id
+    data = query.data
     await query.answer()
 
     lang = await get_lang(update, context)
 
-    if query.data == "buy_sub":
+    # --- FEED TOGGLING ---
+    if data.startswith("toggle_"):
+        _, feed_id, page = data.split("_")
+        success, message = database_manager.toggle_feed_selection(user_id, int(feed_id), FREEMIUM_FEEDS_LIMIT, PREMIUM_FEEDS_LIMIT)
+
+        if not success:
+            # Show an alert if they hit their limit (e.g., 2/2 feeds)
+            await query.answer(f"⚠️ {message}", show_alert=True)
+        else:
+            # Refresh the keyboard to show the new checkmark/cross
+            await query.message.edit_reply_markup(reply_markup=get_feeds_keyboard(user_id, page=int(page)))
+
+    # --- PAGINATION ---
+    elif data.startswith("page_"):
+        new_page = int(data.split("_")[1])
+        await query.message.edit_reply_markup(reply_markup=get_feeds_keyboard(user_id, page=new_page))
+
+    # --- CANCEL/EXIT ---
+    elif data == "cancel_settings":
+        lang = await get_lang(update, context)
+        msg = MESSAGES[lang]['saved_feeds_settings']
+        await query.message.edit_text(msg)
+
+    elif query.data == "buy_sub":
         await send_invoice(update, context)
 
     elif query.data == "show_lang_menu":
@@ -149,6 +217,7 @@ async def button_tap_handler(update: Update, context: ContextTypes.DEFAULT_TYPE)
 # --- Payment Handling ---
 async def precheckout_callback(update: Update, context: ContextTypes.DEFAULT_TYPE):
     await update.pre_checkout_query.answer(ok=True)
+
 
 async def successful_payment_callback(update: Update, context: ContextTypes.DEFAULT_TYPE):
     user_id = update.effective_user.id
