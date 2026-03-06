@@ -191,14 +191,14 @@ def get_feeds_keyboard(user_id, page=0, items_per_page=6):
     for f_id, f_name in current_page_feeds:
         status = "✅" if f_id in selected_feeds else "❌"
         # We pass the mode in the callback so the bot knows which list to redraw
-        keyboard.append([InlineKeyboardButton(f"{status} {f_name}", callback_data=f"toggle_{f_id}_{page}_{mode}")])
+        keyboard.append([InlineKeyboardButton(f"{status} {f_name}", callback_data=f"toggle_{f_id}_{page}")])
 
     # Nav Row
     nav_row = []
     if page > 0:
-        nav_row.append(InlineKeyboardButton("⬅️ Prev", callback_data=f"page_{page - 1}_{mode}"))
+        nav_row.append(InlineKeyboardButton("⬅️ Prev", callback_data=f"page_{page - 1}"))
     if end < len(all_feeds):
-        nav_row.append(InlineKeyboardButton("Next ➡️", callback_data=f"page_{page + 1}_{mode}"))
+        nav_row.append(InlineKeyboardButton("Next ➡️", callback_data=f"page_{page + 1}"))
 
     if nav_row: keyboard.append(nav_row)
     keyboard.append([InlineKeyboardButton("🔙 Back to Menu", callback_data="back_to_settings_main")])
@@ -279,9 +279,8 @@ async def button_tap_handler(update: Update, context: ContextTypes.DEFAULT_TYPE)
 
     # --- FEED TOGGLING ---
     elif data.startswith("toggle_"):
-        # Format: toggle_{id}_{page}_{mode}
         parts = data.split("_")
-        feed_id, page, mode = int(parts[1]), int(parts[2]), parts[3]
+        feed_id, page = int(parts[1]), int(parts[2])
         success, message = database_manager.toggle_feed_selection(user_id, int(feed_id), FREEMIUM_FEEDS_LIMIT, PREMIUM_FEEDS_LIMIT)
 
         if not success:
