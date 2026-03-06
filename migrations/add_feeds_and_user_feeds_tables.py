@@ -26,7 +26,7 @@ def migrate():
                 name TEXT NOT NULL,
                 url TEXT NOT NULL UNIQUE,
                 is_active BOOLEAN DEFAULT 1,
-                generated_user_id INTEGER DEFAULT NULL,
+                generated_user_id INTEGER DEFAULT NULL
             )
         ''')
 
