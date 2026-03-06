@@ -25,6 +25,9 @@ load_dotenv()
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 TOKEN = os.getenv('TELEGRAM_BOT_TOKEN')
 ADMIN_ID = os.getenv('ADMIN_ID')
+PREMIUM_FEEDS_LIMIT = os.getenv('PREMIUM_FEEDS_LIMIT')
+FREEMIUM_FEEDS_LIMIT = os.getenv('FREEMIUM_FEEDS_LIMIT')
+
 LINKS_PATH = os.path.join("constants", "links.json")
 
 
@@ -153,22 +156,78 @@ async def successful_payment_callback(update: Update, context: ContextTypes.DEFA
     await update.message.reply_text(f"✅ Active until: {expiry_dt.strftime('%Y-%m-%d')}")
 
 
-async def send_news_to_chat(chat_id, context):
-    links = get_rss_links()
-    for source in links:
-        feed = feedparser.parse(source['url'])
-        if feed.entries:
-            msg = f"📌 *{source['name']}*\n\n"
-            for entry in feed.entries[:3]:
-                msg += f"• {entry.title}\n🔗 {entry.link}\n\n"
-            await context.bot.send_message(chat_id, msg, parse_mode='Markdown', disable_web_page_preview=True)
-            await asyncio.sleep(0.1)
+async def fetch_and_format_feed(feed_name, feed_url):
+    """Fetches a single RSS feed and returns a formatted Markdown string."""
+    try:
+        # Using a timeout or limit is good practice
+        feed = feedparser.parse(feed_url)
+        if not feed.entries:
+            return ""
+
+        msg = f"📌 *{feed_name}*\n\n"
+        # Take top 3 entries
+        for entry in feed.entries[:3]:
+            msg += f"• {entry.title}\n🔗 {entry.link}\n\n"
+        return msg
+    except Exception as e:
+        print(f"Error parsing {feed_url}: {e}")
+        return ""
+
+
+async def send_news_to_chat(chat_id, context, feed_cache):
+    """Sends personalized news to a specific chat based on user selection."""
+    user_feeds = database_manager.get_user_selected_feeds(chat_id)
+    is_random = False
+
+    # Check if user has selected anything
+    if not user_feeds:
+        # Fallback: Pick 2 random feeds so they don't get an empty message
+        user_feeds = database_manager.get_random_feeds(limit=2)
+        is_random = True
+
+    if not user_feeds:
+        return  # Should only happen if 'feeds' table is completely empty
+
+    full_message = ""
+    if is_random:
+        lang = context.user_data.get('lang') or database_manager.get_user_language(chat_id)
+        note = f"${MESSAGES[lang]['random_news']} \n\n"
+        full_message += note
+
+    for feed_id, feed_name, feed_url in user_feeds:
+        # Check if we already fetched this URL in this broadcast cycle
+        if feed_url not in feed_cache:
+            feed_cache[feed_url] = await fetch_and_format_feed(feed_name, feed_url)
+
+        full_message += feed_cache[feed_url]
+
+    if full_message:
+        try:
+            await context.bot.send_message(
+                chat_id,
+                full_message,
+                parse_mode='Markdown',
+                disable_web_page_preview=True
+            )
+        except Exception as e:
+            print(f"Could not send message to {chat_id}: {e}")
+
 
 async def daily_broadcast(context: ContextTypes.DEFAULT_TYPE):
+    """Main job that orchestrates the daily news delivery."""
     subscribers = database_manager.get_active_subscribers()
+
+    # This cache lives only for the duration of this broadcast
+    # It prevents downloading the same RSS multiple times
+    feed_cache = {}
+
     for user_id in subscribers:
-        try: await send_news_to_chat(user_id, context)
-        except: pass
+        try:
+            await send_news_to_chat(user_id, context, feed_cache)
+            # Mandatory sleep to respect Telegram's flood limits (30 msgs/sec)
+            await asyncio.sleep(0.05)
+        except Exception as e:
+            print(f"General error in broadcast for {user_id}: {e}")
 
 
 # --- Main Application ---
