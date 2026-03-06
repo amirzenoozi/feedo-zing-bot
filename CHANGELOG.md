@@ -9,11 +9,17 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 
 ## [Unreleased]
+
+## [1.0.3] - 2026-04-06
 ### Added
 - Add `get_now` Command for premium users
 
 ### Changed
 - Update Translations
+
+### Fixed
+- Fix `get_now` Inline Button Command
+- Fix `buy_sub` Inline Button Command
 
 
 ## [1.0.2] - 2026-04-06
