@@ -25,8 +25,8 @@ load_dotenv()
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 TOKEN = os.getenv('TELEGRAM_BOT_TOKEN')
 ADMIN_ID = os.getenv('ADMIN_ID')
-PREMIUM_FEEDS_LIMIT = os.getenv('PREMIUM_FEEDS_LIMIT')
-FREEMIUM_FEEDS_LIMIT = os.getenv('FREEMIUM_FEEDS_LIMIT')
+PREMIUM_FEEDS_LIMIT = int(os.getenv('PREMIUM_FEEDS_LIMIT'))
+FREEMIUM_FEEDS_LIMIT = int(os.getenv('FREEMIUM_FEEDS_LIMIT'))
 
 LINKS_PATH = os.path.join("constants", "links.json")
 
@@ -101,6 +101,7 @@ async def user_feeds(update: Update, context: ContextTypes.DEFAULT_TYPE):
         text,
         reply_markup=get_feeds_keyboard(user_id, page=0)
     )
+
 
 async def send_invoice(update: Update, context: ContextTypes.DEFAULT_TYPE):
     user_id = update.effective_user.id
@@ -315,6 +316,7 @@ if __name__ == '__main__':
     application.add_handler(CommandHandler("start", start))
     application.add_handler(CommandHandler("subscribe", send_invoice))
     application.add_handler(CommandHandler("language", language_command))
+    application.add_handler(CommandHandler("feeds", user_feeds))
 
     # Payment Handlers
     application.add_handler(CallbackQueryHandler(button_tap_handler))
