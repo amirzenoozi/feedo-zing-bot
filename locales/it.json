@@ -6,5 +6,6 @@
     "choose_lang": "Per favore, scegli la tua lingua preferita:",
     "lang_set": "Lingua impostata su Italiano! 🇮🇹",
     "sub_req": "❌ Abbonamento richiesto. Per favore, abbonati prima.",
-    "fetching": "⏳ Recupero delle ultime notizie..."
+    "fetching": "⏳ Recupero delle ultime notizie...",
+    "random_news": "🎲 *Suggeriti per te:* (Non hai ancora scelto i feed)"
 }

@@ -6,5 +6,6 @@
     "choose_lang": "Please choose your preferred language:",
     "lang_set": "Language set to English! 🇺🇸",
     "sub_req": "❌ Subscription required. Please subscribe first.",
-    "fetching": "⏳ Fetching latest news..."
+    "fetching": "⏳ Fetching latest news...",
+    "random_news": "🎲 *Suggested for you:* (You haven't picked feeds yet)"
 }
