@@ -7,5 +7,7 @@
     "lang_set": "Lingua impostata su Italiano! 🇮🇹",
     "sub_req": "❌ Abbonamento richiesto. Per favore, abbonati prima.",
     "fetching": "⏳ Recupero delle ultime notizie...",
-    "random_news": "🎲 *Suggeriti per te:* (Non hai ancora scelto i feed)"
+    "random_news": "🎲 *Suggeriti per te:* (Non hai ancora scelto i feed)",
+    "feeds_selection": "Scegli i tuoi feed:\n(Gratis: {free} feed | Premium: {premium} feed)",
+    "saved_feeds_settings": "💾 Impostazioni salvate!"
 }
