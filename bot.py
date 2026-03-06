@@ -227,7 +227,7 @@ async def button_tap_handler(update: Update, context: ContextTypes.DEFAULT_TYPE)
         await query.message.edit_text(msg)
 
     elif query.data == "buy_sub":
-        await send_invoice(update, context)
+        await send_invoice_command(update, context)
 
     elif query.data == "show_lang_menu":
         keyboard = [[
@@ -246,7 +246,7 @@ async def button_tap_handler(update: Update, context: ContextTypes.DEFAULT_TYPE)
         subscribers = database_manager.get_active_subscribers()
         if user_id in subscribers or (ADMIN_ID and str(user_id) == str(ADMIN_ID)):
             await query.message.reply_text(MESSAGES[lang]['fetching'])
-            await send_news_to_chat(query.message.chat_id, context)
+            await send_news_to_chat(query.message.chat_id, context, {})
         else:
             await query.message.reply_text(MESSAGES[lang]['sub_req'])
 
