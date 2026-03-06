@@ -86,13 +86,31 @@ def is_user_premium(user_id):
     return bool(row[0]) if row else False
 
 
-def get_available_feeds():
+def get_official_feeds():
     conn = sqlite3.connect(DB_PATH)
     cursor = conn.cursor()
-    cursor.execute('SELECT id, name FROM feeds WHERE is_active = 1')
+    cursor.execute('SELECT id, name FROM feeds WHERE generated_user_id IS NULL AND is_active = 1')
     rows = cursor.fetchall()
     conn.close()
     return rows
+
+
+def get_user_created_feeds(user_id):
+    conn = sqlite3.connect(DB_PATH)
+    cursor = conn.cursor()
+    cursor.execute('SELECT id, name FROM feeds WHERE generated_user_id = ?', (user_id,))
+    rows = cursor.fetchall()
+    conn.close()
+    return rows
+
+
+def add_custom_feed(user_id, name, url):
+    """Saves a user-specific RSS feed."""
+    conn = sqlite3.connect(DB_PATH)
+    cursor = conn.cursor()
+    cursor.execute('INSERT INTO feeds (name, url, is_active, generated_user_id) VALUES (?, ?, 1, ?)', (name, url, user_id))
+    conn.commit()
+    conn.close()
 
 
 def get_user_selected_feeds(user_id):

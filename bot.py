@@ -13,6 +13,7 @@ from telegram.ext import (
     CallbackQueryHandler,
     PreCheckoutQueryHandler,
     MessageHandler,
+    ConversationHandler,
     filters
 )
 
@@ -30,9 +31,9 @@ FREEMIUM_FEEDS_LIMIT = int(os.getenv('FREEMIUM_FEEDS_LIMIT'))
 
 LINKS_PATH = os.path.join("constants", "links.json")
 
+WAITING_FOR_RSS_NAME, WAITING_FOR_RSS_URL = range(2)
 
 # --- Localization Data ---
-# Define paths and preferences
 LOCALES_PATH = os.path.join(BASE_DIR, "locales")
 SUPPORTED_LANGUAGES = ['en', 'it']
 MESSAGES = load_all_locales(LOCALES_PATH, SUPPORTED_LANGUAGES)
@@ -162,36 +163,107 @@ async def get_news_now_command(update: Update, context: ContextTypes.DEFAULT_TYP
         )
 
 
-def get_feeds_keyboard(user_id, page=0, items_per_page=6):
-    """Generates a paginated keyboard of feeds with selection indicators."""
-    all_feeds = database_manager.get_available_feeds()  # List of (id, name)
+def get_settings_main_keyboard():
+    """First screen: Choose between Presets or Custom feeds."""
+    keyboard = [
+        [InlineKeyboardButton("📋 Official Presets", callback_data="view_presets_0")],
+        [InlineKeyboardButton("➕ Add Custom RSS", callback_data="add_custom_rss")],
+        [InlineKeyboardButton("🚪 Done", callback_data="cancel_settings")]
+    ]
+    return InlineKeyboardMarkup(keyboard)
+
+
+def get_feeds_keyboard(user_id, page=0, items_per_page=6, mode="presets"):
+    """
+    Generates paginated keyboard.
+    Mode 'presets' shows official feeds.
+    Mode 'custom' shows only feeds created by this user.
+    """
+    if mode == "presets":
+        # Only official feeds (generated_user_id IS NULL)
+        all_feeds = database_manager.get_official_feeds()
+    else:
+        # Only user-created feeds
+        all_feeds = database_manager.get_user_created_feeds(user_id)
+
     selected_feeds = [f[0] for f in database_manager.get_user_selected_feeds(user_id)]
 
-    # Calculate pagination
     start = page * items_per_page
     end = start + items_per_page
     current_page_feeds = all_feeds[start:end]
 
     keyboard = []
     for f_id, f_name in current_page_feeds:
-        # Show a checkmark if the user has already selected this feed
         status = "✅" if f_id in selected_feeds else "❌"
-        keyboard.append([InlineKeyboardButton(f"{status} {f_name}", callback_data=f"toggle_{f_id}_{page}")])
+        # We pass the mode in the callback so the bot knows which list to redraw
+        keyboard.append([InlineKeyboardButton(f"{status} {f_name}", callback_data=f"toggle_{f_id}_{page}_{mode}")])
 
-    # Navigation Row
+    # Nav Row
     nav_row = []
     if page > 0:
-        nav_row.append(InlineKeyboardButton("⬅️ Prev", callback_data=f"page_{page - 1}"))
+        nav_row.append(InlineKeyboardButton("⬅️ Prev", callback_data=f"page_{page - 1}_{mode}"))
     if end < len(all_feeds):
-        nav_row.append(InlineKeyboardButton("Next ➡️", callback_data=f"page_{page + 1}"))
+        nav_row.append(InlineKeyboardButton("Next ➡️", callback_data=f"page_{page + 1}_{mode}"))
 
-    if nav_row:
-        keyboard.append(nav_row)
-
-    # Cancel/Done Button
-    keyboard.append([InlineKeyboardButton("Done / Cancel 🚪", callback_data="cancel_settings")])
+    if nav_row: keyboard.append(nav_row)
+    keyboard.append([InlineKeyboardButton("🔙 Back to Menu", callback_data="back_to_settings_main")])
 
     return InlineKeyboardMarkup(keyboard)
+
+
+# Handle Custom RSS Conversation
+async def start_custom_rss_flow(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    """Triggered when user clicks 'Add Custom RSS'."""
+    query = update.callback_query
+    lang = await get_lang(update, context)
+    await query.answer()
+    await query.message.edit_text(MESSAGES[lang]['insert_rss_name'])
+    return WAITING_FOR_RSS_NAME
+
+
+async def handle_custom_name(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    context.user_data['temp_rss_name'] = update.message.text
+    lang = await get_lang(update, context)
+    await update.message.reply_text(MESSAGES[lang]['insert_rss_link'])
+    return WAITING_FOR_RSS_URL
+
+
+async def handle_custom_url(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    user_id = update.effective_user.id
+    url = update.message.text
+    name = context.user_data.get('temp_rss_name')
+    lang = await get_lang(update, context)
+
+    # Basic check if it's a valid RSS
+    feed = feedparser.parse(url)
+    if not feed.entries:
+        await update.message.reply_text(MESSAGES[lang]['invalid_rss'])
+        return ConversationHandler.END
+
+    # Save to DB with user_id
+    database_manager.add_custom_feed(user_id, name, url)
+
+    await update.message.reply_text(MESSAGES[lang]['rss_add_successfully'].format(name=name), reply_markup=get_settings_main_keyboard())
+    return ConversationHandler.END
+
+
+async def cancel_conversation(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    """
+    Clears the conversation state and returns to the main settings menu.
+    All comments in English.
+    """
+    lang = await get_lang(update, context)
+    msg = MESSAGES[lang]['action_canceled']
+
+    # Check if this was a button click or a typed command
+    if update.callback_query:
+        await update.callback_query.answer()
+        await update.callback_query.message.edit_text(msg)
+    else:
+        await update.message.reply_text(msg)
+
+    # This is the magic return that tells the ConversationHandler to stop
+    return ConversationHandler.END
 
 
 # --- Callback Handling ---
@@ -203,9 +275,21 @@ async def button_tap_handler(update: Update, context: ContextTypes.DEFAULT_TYPE)
 
     lang = await get_lang(update, context)
 
+    # 1. Main Navigation
+    if data == "view_presets_0":
+        await query.message.edit_reply_markup(reply_markup=get_feeds_keyboard(user_id, page=0, mode="presets"))
+
+    elif data == "view_custom_0":
+        await query.message.edit_reply_markup(reply_markup=get_feeds_keyboard(user_id, page=0, mode="custom"))
+
+    elif data == "back_to_settings_main":
+        await query.message.edit_reply_markup(reply_markup=get_settings_main_keyboard())
+
     # --- FEED TOGGLING ---
-    if data.startswith("toggle_"):
-        _, feed_id, page = data.split("_")
+    elif data.startswith("toggle_"):
+        # Format: toggle_{id}_{page}_{mode}
+        parts = data.split("_")
+        feed_id, page, mode = int(parts[1]), int(parts[2]), parts[3]
         success, message = database_manager.toggle_feed_selection(user_id, int(feed_id), FREEMIUM_FEEDS_LIMIT, PREMIUM_FEEDS_LIMIT)
 
         if not success:
@@ -348,7 +432,19 @@ if __name__ == '__main__':
     # Build the application
     application = Application.builder().token(TOKEN).build()
 
+    # Define the ConversationHandler for adding custom RSS
+    custom_rss_conv = ConversationHandler(
+        entry_points=[CallbackQueryHandler(start_custom_rss_flow, pattern="^add_custom_rss$")],
+        states={
+            WAITING_FOR_RSS_NAME: [MessageHandler(filters.TEXT & ~filters.COMMAND, handle_custom_name)],
+            WAITING_FOR_RSS_URL: [MessageHandler(filters.TEXT & ~filters.COMMAND, handle_custom_url)],
+        },
+        fallbacks=[CommandHandler("cancel", cancel_conversation), CallbackQueryHandler(cancel_conversation, pattern="^cancel_settings$")],
+        allow_reentry=True
+    )
+
     # Handlers
+    application.add_handler(custom_rss_conv)
     application.add_handler(CommandHandler("start", start_command))
     application.add_handler(CommandHandler("subscribe", send_invoice_command))
     application.add_handler(CommandHandler("language", language_command))
