@@ -22,7 +22,7 @@ from scripts.utils import load_all_locales
 
 # Load environment variables
 load_dotenv()
-BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 TOKEN = os.getenv('TELEGRAM_BOT_TOKEN')
 ADMIN_ID = os.getenv('ADMIN_ID')
 PREMIUM_FEEDS_LIMIT = int(os.getenv('PREMIUM_FEEDS_LIMIT'))
