@@ -10,5 +10,10 @@
     "random_news": "🎲 *Suggested for you:* (You haven't picked feeds yet)",
     "feeds_selection": "Select your feeds:\n(Free: {free} feeds | Premium: {premium} feeds)",
     "saved_feeds_settings": "💾 Settings saved!",
-    "upgrade_your_plan": "🚀 To use this feature, you need to upgrade your plan."
+    "upgrade_your_plan": "🚀 To use this feature, you need to upgrade your plan.",
+    "insert_rss_name": "Enter a short name for this feed (e.g., 'My Blog'):",
+    "insert_rss_link": "Now, please paste the RSS URL (xml/rss link):",
+    "invalid_rss": "❌ That doesn't look like a valid RSS feed. Operation cancelled.",
+    "rss_add_successfully": "✅ Added '{name}'! You can now enable it in settings.",
+    "action_canceled": "Action cancelled."
 }
