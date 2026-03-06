@@ -92,6 +92,16 @@ def get_user_selected_feeds(user_id):
     conn.close()
     return rows
 
+def get_random_feeds(limit=1):
+    """Returns a list of random active feeds (id, name, url)."""
+    conn = sqlite3.connect(DB_PATH)
+    cursor = conn.cursor()
+    # ORDER BY RANDOM() is efficient for small-to-medium tables
+    cursor.execute('SELECT id, name, url FROM feeds WHERE is_active = 1 AND generated_user_id IS NULL ORDER BY RANDOM() LIMIT ?', (limit,))
+    rows = cursor.fetchall()
+    conn.close()
+    return rows
+
 
 def toggle_feed_selection(user_id, feed_id, freemium_limit=2, premium_limit=5):
     """Adds or removes a feed. Returns (status_code, message)"""
