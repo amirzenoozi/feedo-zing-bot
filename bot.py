@@ -78,6 +78,19 @@ async def start_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
     await update.message.reply_text(MESSAGES[lang]['start'], reply_markup=reply_markup)
 
 
+async def stats_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    """Shows bot statistics."""
+    user_id = update.effective_user.id
+    lang = await get_lang(update, context)
+
+    if ADMIN_ID and str(user_id) == str(ADMIN_ID):
+        users_count, premium_counts, custom_feeds_count = database_manager.get_stats_for_admin()
+        text = MESSAGES[lang]['stats_template'].format(users=users_count, subscribers=premium_counts, custom_feeds=custom_feeds_count)
+        await update.message.reply_text(text, parse_mode='Markdown')
+    else:
+        await update.message.reply_text(MESSAGES[lang]['stats_error_text'])
+
+
 async def language_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
     """Command or menu to change language."""
     lang = await get_lang(update, context)
@@ -444,6 +457,7 @@ if __name__ == '__main__':
     application.add_handler(CommandHandler("language", language_command))
     application.add_handler(CommandHandler("feeds", user_feeds_command))
     application.add_handler(CommandHandler("get_now", get_news_now_command))
+    application.add_handler(CommandHandler("stats", stats_command))
 
     # Payment Handlers
     application.add_handler(CallbackQueryHandler(button_tap_handler))

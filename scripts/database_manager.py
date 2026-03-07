@@ -178,3 +178,29 @@ def toggle_feed_selection(user_id, feed_id, freemium_limit=2, premium_limit=5):
     conn.commit()
     conn.close()
     return True, "Added"
+
+
+def get_stats_for_admin():
+    """Returns statistics for the admin dashboard."""
+    conn = sqlite3.connect(DB_PATH)
+    cursor = conn.cursor()
+    cursor.execute('SELECT COUNT(*) FROM users')
+    total_users = cursor.fetchone()[0]
+    cursor.execute('SELECT COUNT(*) FROM users WHERE is_subscribed = 1')
+    total_premium_users = cursor.fetchone()[0]
+    cursor.execute('SELECT COUNT(*) FROM feeds WHERE generated_user_id IS NOT NULL')
+    total_custom_feeds = cursor.fetchone()[0]
+
+    return total_users, total_premium_users, total_custom_feeds
+
+
+def add_official_feed(name, url):
+    """
+    Saves a global RSS feed that will be visible to everyone.
+    The generated_user_id is set to NULL.
+    """
+    conn = sqlite3.connect(DB_PATH)
+    cursor = conn.cursor()
+    cursor.execute('INSERT INTO feeds (name, url, generated_user_id, is_active) VALUES (?, ?, NULL, 1)', (name, url))
+    conn.commit()
+    conn.close()
