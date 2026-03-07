@@ -39,7 +39,7 @@ WAITING_FOR_BROADCAST = 10
 
 # --- Localization Data ---
 LOCALES_PATH = os.path.join(BASE_DIR, "locales")
-SUPPORTED_LANGUAGES = ['en', 'it']
+SUPPORTED_LANGUAGES = ['en', 'it', 'de', 'ru']
 MESSAGES = load_all_locales(LOCALES_PATH, SUPPORTED_LANGUAGES)
 
 # --- Helper Functions ---
@@ -101,7 +101,9 @@ async def language_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
     lang = await get_lang(update, context)
     keyboard = [[
         InlineKeyboardButton("English 🇺🇸", callback_data="set_lang_en"),
-        InlineKeyboardButton("Italiano 🇮🇹", callback_data="set_lang_it")
+        InlineKeyboardButton("Italiano 🇮🇹", callback_data="set_lang_it"),
+        InlineKeyboardButton("Русский 🇷🇺", callback_data="set_lang_ru"),
+        InlineKeyboardButton("Deutsch 🇩🇪", callback_data="set_lang_de")
     ]]
     await update.message.reply_text(
         MESSAGES[lang]['choose_lang'],
@@ -504,7 +506,9 @@ async def button_tap_handler(update: Update, context: ContextTypes.DEFAULT_TYPE)
     elif query.data == "show_lang_menu":
         keyboard = [[
             InlineKeyboardButton("English 🇺🇸", callback_data="set_lang_en"),
-            InlineKeyboardButton("Italiano 🇮🇹", callback_data="set_lang_it")
+            InlineKeyboardButton("Italiano 🇮🇹", callback_data="set_lang_it"),
+            InlineKeyboardButton("Русский 🇷🇺", callback_data="set_lang_ru"),
+            InlineKeyboardButton("Deutsch 🇩🇪", callback_data="set_lang_de")
         ]]
         await query.message.edit_text(MESSAGES[lang]['choose_lang'], reply_markup=InlineKeyboardMarkup(keyboard))
 
