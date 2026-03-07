@@ -491,7 +491,7 @@ if __name__ == '__main__':
         allow_reentry=True
     )
 
-    # Let Admin to register Feeds for all Users
+    # Let Admin register Feeds for all Users
     admin_feed_conv = ConversationHandler(
         entry_points=[CommandHandler("add_official", admin_add_feed_command)],
         states={
