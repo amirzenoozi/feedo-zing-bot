@@ -62,6 +62,7 @@ docker compose run --rm rss-bot python migrations/migrate_v2.py
 | `/feeds`        | Manage your own subscribed feeds            |
 | `/admin_feeds`  | ADMIN command to manage all feeds           |
 | `/about`        | Show the developer information              |
+| `/broadcast`    | ADMIN command to send a message to all users |
 
 
 ## 📝 Critique & Challenges
