@@ -51,18 +51,18 @@ docker compose run --rm rss-bot python migrations/migrate_v2.py
 ```
 
 ## 🚀 Commands
-| Command         | Description                                 |
-|-----------------|---------------------------------------------|
-| `/start`        | Register and show the main menu             |
-| `/subscribe`    | Open the payment invoice for Telegram Stars |
-| `/language`     | Change your preferred language (EN/IT)      |
-| `/add_official` | ADMIN command to add a new RSS feed         |
-| `/stats`        | ADMIN command to see the statistics         |
-| `/get_now`      | Premium command to get the latest news Now  |
-| `/feeds`        | Manage your own subscribed feeds            |
-| `/admin_feeds`  | ADMIN command to manage all feeds           |
-| `/about`        | Show the developer information              |
-| `/broadcast`    | ADMIN command to send a message to all users |
+| Command         | Description                                   |
+|-----------------|-----------------------------------------------|
+| `/start`        | Register and show the main menu               |
+| `/subscribe`    | Open the payment invoice for Telegram Stars   |
+| `/language`     | Change your preferred language (EN/IT)        |
+| `/add_official` | ADMIN command to add a new RSS feed           |
+| `/stats`        | ADMIN command to see the statistics           |
+| `/get_now`      | Premium command to get the latest news Now    |
+| `/feeds`        | Manage your own subscribed feeds              |
+| `/admin_feeds`  | ADMIN command to manage all feeds             |
+| `/about`        | Show the developer information                |
+| `/broadcast`    | ADMIN command to send a message to all users  |
 
 
 ## 🌐 Supported Languages
