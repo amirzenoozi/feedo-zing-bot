@@ -10,6 +10,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.2.0] - 2026-04-07
+### Added
+- Add `/add_official` for Admin user to add offical RSS feeds for all users
+- Add `stats` for Admin user to see the stats of the bot
+
+### Changed
+- Update Translations
+- Update `README.md`
+
 ## [1.1.2] - 2026-04-06
 ### Added
 - Support Custom RSS Feeds for Users
