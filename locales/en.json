@@ -20,5 +20,9 @@
     "stats_template": "📊 Here you are Dear Master 📊\n\n👽 *Total User*: {users} \n⭐ *Subscribers:* {subscribers} \n📰 *Custom Feeds:* {custom_feeds}",
     "submit_rss_admin": "👮🏻‍♂️ Admin Mode: Please enter the name for the NEW OFFICIAL feed:",
     "rss_add_successfully_admin": "✅ Success! '{name}' is now an official feed for all users.",
-    "admin_manage_feeds": "🛠️ **Admin Control Center**\nSelect a feed to activate/deactivate it for all users:"
+    "admin_manage_feeds": "🛠️ **Admin Control Center**\nSelect a feed to activate/deactivate it for all users:",
+    "contact_message": "☎️ **About Us**\n\nExplore the source code, visit my homepage, or report any issues you've found:",
+    "contact_home_page": "🖥️ My Homepage",
+    "contact_github": "📁 GitHub Repository",
+    "contact_issue": "⚠️ Report a Problem!"
 }
