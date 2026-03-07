@@ -17,5 +17,7 @@
     "rss_add_successfully": "✅ Added '{name}'! You can now enable it in settings.",
     "action_canceled": "Action cancelled.",
     "stats_error_text": "🧟‍♂️ How did you find this command? \nYou cannot access to my secrets.",
-    "stats_template": "📊 Here you are Dear Master 📊\n\n👽 *Total User*: {users} \n⭐ *Subscribers:* {subscribers} \n📰 *Custom Feeds:* {custom_feeds}"
+    "stats_template": "📊 Here you are Dear Master 📊\n\n👽 *Total User*: {users} \n⭐ *Subscribers:* {subscribers} \n📰 *Custom Feeds:* {custom_feeds}",
+    "submit_rss_admin": "👮🏻‍♂️ Admin Mode: Please enter the name for the NEW OFFICIAL feed:",
+    "rss_add_successfully_admin": "✅ Success! '{name}' is now an official feed for all users."
 }
