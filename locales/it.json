@@ -23,5 +23,8 @@
     "admin_manage_feeds": "🛠️ **Centro di Controllo Admin**\nSeleziona un feed per attivarlo/disattivarlo per tutti gli utenti:",
     "contact_home_page": "🖥️ La Mia Homepage",
     "contact_github": "📁 Repository GitHub",
-    "contact_issue": "⚠️ Segnala un Problema!"
+    "contact_issue": "⚠️ Segnala un Problema!",
+    "broadcast_conv_guid": "📢 **Modalità Broadcast**\n\nPer favore, inviami il messaggio che vuoi trasmettere.\nPuò essere **Solo testo** o una **Foto con didascalia**.\n\nDigita `/cancel` per annullare.",
+    "start_broadcasting": "🚀 Starting broadcast to {all_users} users...",
+    "broadcasting_stats": "✅ **Broadcast Finished!**\n\n📤 Success: {count}\n📥 Failed/Blocked: {blocked}"
 }
