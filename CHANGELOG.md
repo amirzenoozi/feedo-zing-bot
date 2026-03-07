@@ -17,6 +17,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Changed
 - Update Translations
 
+
 ## [1.3.0] - 2026-04-07
 ### Added
 - Add `/admin_feeds` to manage all feeds by Admin user
