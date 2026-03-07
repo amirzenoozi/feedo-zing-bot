@@ -10,6 +10,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.5.0] - 2026-04-07
+### Added
+- Implement preview support for freemium users
+
+### Changed
+- Update Translations
+- Exclude sender from broadcast messages
+
+
 ## [1.4.0] - 2026-04-07
 ### Added
 - Add `/broadcast` commands for Admin user to broadcast messages to all users
