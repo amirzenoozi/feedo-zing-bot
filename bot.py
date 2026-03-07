@@ -493,7 +493,7 @@ if __name__ == '__main__':
 
     # Let Admin to register Feeds for all Users
     admin_feed_conv = ConversationHandler(
-        entry_points=[CommandHandler("add_official", admin_add_feed_command())],
+        entry_points=[CommandHandler("add_official", admin_add_feed_command)],
         states={
             ADMIN_ADD_NAME: [MessageHandler(filters.TEXT & ~filters.COMMAND, handle_admin_feed_name)],
             ADMIN_ADD_URL: [MessageHandler(filters.TEXT & ~filters.COMMAND, handle_admin_feed_url)],
