@@ -15,5 +15,7 @@
     "insert_rss_link": "Now, please paste the RSS URL (xml/rss link):",
     "invalid_rss": "❌ That doesn't look like a valid RSS feed. Operation cancelled.",
     "rss_add_successfully": "✅ Added '{name}'! You can now enable it in settings.",
-    "action_canceled": "Action cancelled."
+    "action_canceled": "Action cancelled.",
+    "stats_error_text": "🧟‍♂️ How did you find this command? \nYou cannot access to my secrets.",
+    "stats_template": "📊 Here you are Dear Master 📊\n\n👽 *Total User*: {users} \n⭐ *Subscribers:* {subscribers} \n📰 *Custom Feeds:* {custom_feeds}"
 }

@@ -15,5 +15,7 @@
     "insert_rss_link": "Ora, incolla l'URL RSS (link xml/rss):",
     "invalid_rss": "❌ Non sembra un feed RSS valido. Operazione annullata.",
     "rss_add_successfully": "✅ '{name}' aggiunto! Ora puoi abilitarlo nelle impostazioni.",
-    "action_canceled": "Operazione annullata."
+    "action_canceled": "Operazione annullata.",
+    "stats_error_text": "🧟‍♂️ Come hai trovato questo comando? \n Non puoi accedere ai miei segreti.",
+    "stats_template": "📊 Ecco a te, caro Maestro 📊\n\n👥 *Utenti Totali*: {users} \n⭐ *Abbonati:* {subscribers} \n📡 *Feed Personalizzati:* {custom_feeds}"
 }
