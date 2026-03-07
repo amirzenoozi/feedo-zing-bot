@@ -47,6 +47,18 @@ def get_all_users(exclude_id=None):
     return users
 
 
+def get_freemium_users():
+    """Fetches user IDs who do NOT have an active subscription."""
+    conn = sqlite3.connect(DB_PATH)
+    cursor = conn.cursor()
+    now = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
+    # Users where is_subscribed is 0 OR the expiry date has passed
+    cursor.execute('SELECT user_id FROM users WHERE is_subscribed = 0 OR expiry_date <= ?', (now,))
+    users = [row[0] for row in cursor.fetchall()]
+    conn.close()
+    return users
+
+
 def get_active_subscribers():
     # Fetch all users with a valid subscription
     conn = sqlite3.connect(DB_PATH)

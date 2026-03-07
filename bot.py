@@ -3,6 +3,7 @@ import json
 import feedparser
 import datetime
 import asyncio
+import random
 
 from dotenv import load_dotenv
 from telegram import Update, LabeledPrice, InlineKeyboardButton, InlineKeyboardMarkup
@@ -517,7 +518,7 @@ async def button_tap_handler(update: Update, context: ContextTypes.DEFAULT_TYPE)
         subscribers = database_manager.get_active_subscribers()
         if user_id in subscribers or (ADMIN_ID and str(user_id) == str(ADMIN_ID)):
             await query.message.reply_text(MESSAGES[lang]['fetching'])
-            await send_news_to_chat(query.message.chat_id, context, {})
+            await send_news_to_chat(query.message.chat_id, context, {}, True)
         else:
             await query.message.reply_text(MESSAGES[lang]['sub_req'])
 
@@ -551,25 +552,30 @@ async def fetch_and_format_feed(feed_name, feed_url):
         return ""
 
 
-async def send_news_to_chat(chat_id, context, feed_cache):
+async def send_news_to_chat(chat_id, context, feed_cache, is_premium):
     """Sends personalized news to a specific chat based on user selection."""
     user_feeds = database_manager.get_user_selected_feeds(chat_id)
+    lang = context.user_data.get('lang') or database_manager.get_user_language(chat_id)
     is_random = False
 
     # Check if user has selected anything
     if not user_feeds:
         # Fallback: Pick 2 random feeds so they don't get an empty message
-        user_feeds = database_manager.get_random_feeds(limit=2)
+        user_feeds = database_manager.get_random_feeds(limit=1)
         is_random = True
 
     if not user_feeds:
         return  # Should only happen if 'feeds' table is completely empty
 
+    if not is_premium and not is_random:
+        user_feeds = [random.choice(user_feeds)]
+
     full_message = ""
     if is_random:
-        lang = context.user_data.get('lang') or database_manager.get_user_language(chat_id)
         note = f"${MESSAGES[lang]['random_news']} \n\n"
         full_message += note
+    elif not is_premium:
+        full_message += MESSAGES[lang]['preview_msg']
 
     for feed_id, feed_name, feed_url in user_feeds:
         # Check if we already fetched this URL in this broadcast cycle
@@ -592,19 +598,28 @@ async def send_news_to_chat(chat_id, context, feed_cache):
 
 async def daily_broadcast(context: ContextTypes.DEFAULT_TYPE):
     """Main job that orchestrates the daily news delivery."""
-    subscribers = database_manager.get_active_subscribers()
-
     # This cache lives only for the duration of this broadcast
     # It prevents downloading the same RSS multiple times
     feed_cache = {}
 
+    subscribers = database_manager.get_active_subscribers()
     for user_id in subscribers:
         try:
-            await send_news_to_chat(user_id, context, feed_cache)
+            await send_news_to_chat(user_id, context, feed_cache, is_premium=True)
             # Mandatory sleep to respect Telegram's flood limits (30 msgs/sec)
             await asyncio.sleep(0.05)
         except Exception as e:
             print(f"General error in broadcast for {user_id}: {e}")
+
+    # PHASE 2: Freemium Users (One Random Feed)
+    freemium_users = database_manager.get_freemium_users()
+    for user_id in freemium_users:
+        try:
+            # We pass is_premium=False to the sender function
+            await send_news_to_chat(user_id, context, feed_cache, is_premium=False)
+            await asyncio.sleep(0.05)
+        except Exception as e:
+            print(f"Error in Freemium broadcast for {user_id}: {e}")
 
 
 
