@@ -382,7 +382,8 @@ async def start_broadcast(update: Update, context: ContextTypes.DEFAULT_TYPE):
 async def handle_broadcast_message(update: Update, context: ContextTypes.DEFAULT_TYPE):
     """Processes and sends the message to all users."""
     admin_msg = update.message
-    all_users = database_manager.get_all_users()
+    user_id = update.effective_user.id
+    all_users = database_manager.get_all_users(user_id)
     lang = await get_lang(update, context)
 
     count = 0
