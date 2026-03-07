@@ -10,6 +10,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.4.0] - 2026-04-07
+### Added
+- Add `/broadcast` commands for Admin user to broadcast messages to all users
+
+### Changed
+- Update Translations
+
+
 ## [1.3.1] - 2026-04-07
 ### Added
 - Add `/about` to show the developer's info
