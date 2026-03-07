@@ -90,6 +90,7 @@ async def stats_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
         await update.message.reply_text(text, parse_mode='Markdown')
     else:
         await update.message.reply_text(MESSAGES[lang]['stats_error_text'])
+        return
 
 
 async def language_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
@@ -130,6 +131,23 @@ async def admin_add_feed_command(update: Update, context: ContextTypes.DEFAULT_T
 
     await update.message.reply_text(MESSAGES[lang]['submit_rss_admin'])
     return ADMIN_ADD_NAME
+
+
+async def admin_manage_feeds_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    """Entry point for the admin feed management panel."""
+    user_id = update.effective_user.id
+    lang = await get_lang(update, context)
+
+    # Security Check
+    if str(user_id) != str(ADMIN_ID):
+        await update.message.reply_text(MESSAGES[lang]['stats_error_text'])
+        return
+
+    await update.message.reply_text(
+        MESSAGES[lang]['admin_manage_feeds'],
+        reply_markup=get_admin_manage_feeds_keyboard(),
+        parse_mode="Markdown"
+    )
 
 
 async def send_invoice_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
@@ -231,6 +249,34 @@ def get_feeds_keyboard(user_id, page=0, items_per_page=6):
     if nav_row: keyboard.append(nav_row)
     keyboard.append([InlineKeyboardButton("🔙 Back to Menu", callback_data="back_to_settings_main")])
 
+    return InlineKeyboardMarkup(keyboard)
+
+
+def get_admin_manage_feeds_keyboard(page=0, items_per_page=6):
+    """Generates a keyboard for admin to toggle official feeds status."""
+    all_feeds = database_manager.get_all_official_feeds_for_admin()
+
+    start = page * items_per_page
+    end = start + items_per_page
+    current_page_feeds = all_feeds[start:end]
+
+    keyboard = []
+    for f_id, f_name, is_active in current_page_feeds:
+        # ✅ = Active (Visible to users), 🚫 = Inactive (Hidden)
+        status_icon = "✅" if is_active else "🚫"
+        keyboard.append([InlineKeyboardButton(f"{status_icon} {f_name}", callback_data=f"adm_toggle_{f_id}_{page}")])
+
+    # Navigation
+    nav_row = []
+    if page > 0:
+        nav_row.append(InlineKeyboardButton("⬅️ Prev", callback_data=f"adm_page_{page - 1}"))
+    if end < len(all_feeds):
+        nav_row.append(InlineKeyboardButton("Next ➡️", callback_data=f"adm_page_{page + 1}"))
+
+    if nav_row:
+        keyboard.append(nav_row)
+
+    keyboard.append([InlineKeyboardButton("🚪 Close Admin Panel", callback_data="cancel_settings")])
     return InlineKeyboardMarkup(keyboard)
 
 
@@ -348,6 +394,23 @@ async def button_tap_handler(update: Update, context: ContextTypes.DEFAULT_TYPE)
     elif data.startswith("page_"):
         new_page = int(data.split("_")[1])
         await query.message.edit_reply_markup(reply_markup=get_feeds_keyboard(user_id, page=new_page))
+
+    # --- ADMIN TOGGLING OFFICIAL FEEDS ---
+    elif data.startswith("adm_toggle_"):
+        # Format: adm_toggle_{id}_{page}
+        parts = data.split("_")
+        f_id, page = int(parts[2]), int(parts[3])
+
+        # Toggle the status in DB
+        database_manager.toggle_feed_active_status(f_id)
+
+        # Refresh the keyboard
+        await query.message.edit_reply_markup(reply_markup=get_admin_manage_feeds_keyboard(page=page))
+
+    # --- ADMIN FEEDS PAGINATION ---
+    elif data.startswith("adm_page_"):
+        page = int(data.split("_")[2])
+        await query.message.edit_reply_markup(reply_markup=get_admin_manage_feeds_keyboard(page=page))
 
     # --- CANCEL/EXIT ---
     elif data == "cancel_settings":
@@ -511,6 +574,7 @@ if __name__ == '__main__':
     application.add_handler(CommandHandler("feeds", user_feeds_command))
     application.add_handler(CommandHandler("get_now", get_news_now_command))
     application.add_handler(CommandHandler("stats", stats_command))
+    application.add_handler(CommandHandler("admin_feeds", admin_manage_feeds_command))
 
     # Payment Handlers
     application.add_handler(CallbackQueryHandler(button_tap_handler))

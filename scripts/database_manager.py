@@ -204,3 +204,28 @@ def add_official_feed(name, url):
     cursor.execute('INSERT INTO feeds (name, url, generated_user_id, is_active) VALUES (?, ?, NULL, 1)', (name, url))
     conn.commit()
     conn.close()
+
+
+def get_all_official_feeds_for_admin():
+    """
+    Fetches ALL official feeds (active and inactive) for the admin.
+    """
+    conn = sqlite3.connect(DB_PATH)
+    cursor = conn.cursor()
+    # Fetch all feeds where generated_user_id is NULL
+    cursor.execute('SELECT id, name, is_active FROM feeds WHERE generated_user_id IS NULL ORDER BY name ASC')
+    rows = cursor.fetchall()
+    conn.close()
+    return rows
+
+
+def toggle_feed_active_status(feed_id):
+    """
+    Toggles the is_active status (1 to 0 or 0 to 1) for a specific feed.
+    """
+    conn = sqlite3.connect(DB_PATH)
+    cursor = conn.cursor()
+    cursor.execute('UPDATE feeds SET is_active = 1 - is_active WHERE id = ?', (feed_id,))
+    conn.commit()
+    conn.close()
+
