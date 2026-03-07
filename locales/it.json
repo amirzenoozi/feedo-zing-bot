@@ -19,5 +19,6 @@
     "stats_error_text": "🧟‍♂️ Come hai trovato questo comando? \n Non puoi accedere ai miei segreti.",
     "stats_template": "📊 Ecco a te, caro Maestro 📊\n\n👥 *Utenti Totali*: {users} \n⭐ *Abbonati:* {subscribers} \n📡 *Feed Personalizzati:* {custom_feeds}",
     "submit_rss_admin": "👮🏻‍♂️ Modalità Admin: Inserisci il nome per il NUOVO feed UFFICIALE:",
-    "rss_add_successfully_admin": "✅ Successo! '{name}' è ora un feed ufficiale per tutti gli utenti."
+    "rss_add_successfully_admin": "✅ Successo! '{name}' è ora un feed ufficiale per tutti gli utenti.",
+    "admin_manage_feeds": "🛠️ **Centro di Controllo Admin**\nSeleziona un feed per attivarlo/disattivarlo per tutti gli utenti:"
 }
