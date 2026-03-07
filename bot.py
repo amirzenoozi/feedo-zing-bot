@@ -32,6 +32,7 @@ FREEMIUM_FEEDS_LIMIT = int(os.getenv('FREEMIUM_FEEDS_LIMIT'))
 LINKS_PATH = os.path.join("constants", "links.json")
 
 WAITING_FOR_RSS_NAME, WAITING_FOR_RSS_URL = range(2)
+ADMIN_ADD_NAME, ADMIN_ADD_URL = range(3, 5)
 
 # --- Localization Data ---
 LOCALES_PATH = os.path.join(BASE_DIR, "locales")
@@ -115,6 +116,20 @@ async def user_feeds_command(update: Update, context: ContextTypes.DEFAULT_TYPE)
         text,
         reply_markup=get_settings_main_keyboard()
     )
+
+
+async def admin_add_feed_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    """Starts the official feed addition process (Admin only)."""
+    user_id = update.effective_user.id
+    lang = await get_lang(update, context)
+
+    # Check if the user is the admin
+    if str(user_id) != str(ADMIN_ID):
+        await update.message.reply_text(MESSAGES[lang]['stats_error_text'])
+        return ConversationHandler.END
+
+    await update.message.reply_text(MESSAGES[lang]['submit_rss_admin'])
+    return ADMIN_ADD_NAME
 
 
 async def send_invoice_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
@@ -255,6 +270,32 @@ async def handle_custom_url(update: Update, context: ContextTypes.DEFAULT_TYPE):
     return ConversationHandler.END
 
 
+# Handle Custom RSS Conversation For Admin User
+async def handle_admin_feed_name(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    context.user_data['admin_temp_name'] = update.message.text
+    lang = await get_lang(update, context)
+    await update.message.reply_text(MESSAGES[lang]['insert_rss_link'])
+    return ADMIN_ADD_URL
+
+
+async def handle_admin_feed_url(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    name = context.user_data.get('admin_temp_name')
+    url = update.message.text
+    lang = await get_lang(update, context)
+
+    # Basic validation
+    feed = feedparser.parse(url)
+    if not feed.entries:
+        await update.message.reply_text(MESSAGES[lang]['invalid_rss'])
+        return ConversationHandler.END
+
+    # Save as NULL user_id in DB
+    database_manager.add_official_feed(name, url)
+
+    await update.message.reply_text(MESSAGES[lang]['rss_add_successfully_admin'].format(name=name))
+    return ConversationHandler.END
+
+# General Conversation Cancel Function
 async def cancel_conversation(update: Update, context: ContextTypes.DEFAULT_TYPE):
     """
     Clears the conversation state and returns to the main settings menu.
@@ -450,8 +491,20 @@ if __name__ == '__main__':
         allow_reentry=True
     )
 
+    # Let Admin to register Feeds for all Users
+    admin_feed_conv = ConversationHandler(
+        entry_points=[CommandHandler("add_official", admin_add_feed_command())],
+        states={
+            ADMIN_ADD_NAME: [MessageHandler(filters.TEXT & ~filters.COMMAND, handle_admin_feed_name)],
+            ADMIN_ADD_URL: [MessageHandler(filters.TEXT & ~filters.COMMAND, handle_admin_feed_url)],
+        },
+        fallbacks=[CommandHandler("cancel", cancel_conversation)],
+        allow_reentry=True
+    )
+
     # Handlers
     application.add_handler(custom_rss_conv)
+    application.add_handler(admin_feed_conv)
     application.add_handler(CommandHandler("start", start_command))
     application.add_handler(CommandHandler("subscribe", send_invoice_command))
     application.add_handler(CommandHandler("language", language_command))
