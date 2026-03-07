@@ -27,18 +27,12 @@ Create a `.env` file in the root directory:
 ```bash
 TELEGRAM_BOT_TOKEN=your_bot_token_here
 ADMIN_ID=your_telegram_user_id
+PREMIUM_FEEDS_LIMIT=5
+FREEMIUM_FEEDS_LIMIT=2
 ```
 
-Edit constants/links.json to add your preferred RSS feeds:
-
-```json
-{
-  "supported_links": [
-    {"name": "NASA", "url": "[https://www.nasa.gov/rss/dyn/breaking_news.rss](https://www.nasa.gov/rss/dyn/breaking_news.rss)"},
-    {"name": "The Verge", "url": "[https://www.theverge.com/rss/index.xml](https://www.theverge.com/rss/index.xml)"}
-  ]
-}
-```
+You can insert all RSS feeds you want using admin commands (i.e. `/add_official`) inside the BOT.
+For each Item you must Enter a Title and a URL.
 
 ### 3. Run with Docker Compose
 ```bash
@@ -57,11 +51,15 @@ docker compose run --rm rss-bot python migrations/migrate_v2.py
 ```
 
 ## 🚀 Commands
-| Command         | Description                                  |
-|-----------------|----------------------------------------------|
-| `/start`        | Register and show the main menu              |
-| `/subscribe`    | Open the payment invoice for Telegram Stars  |
-| `/language`     | Change your preferred language (EN/IT)       |
+| Command         | Description                                 |
+|-----------------|---------------------------------------------|
+| `/start`        | Register and show the main menu             |
+| `/subscribe`    | Open the payment invoice for Telegram Stars |
+| `/language`     | Change your preferred language (EN/IT)      |
+| `/add_official` | ADMIN command to add a new RSS feed         |
+| `/stats`        | ADMIN command to see the statistics         |
+| `/get_now`      | Premium command to get the latest news Now  |
+| `feeds`         | Manage your own subscribed feeds            |
 
 
 ## 📝 Critique & Challenges
