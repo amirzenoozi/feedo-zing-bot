@@ -19,6 +19,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Update Translations
 - Update `README.md`
 
+### Fixed
+- Solve `/add_official` Registration Error
+
 ## [1.1.2] - 2026-04-06
 ### Added
 - Support Custom RSS Feeds for Users
