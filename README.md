@@ -65,6 +65,18 @@ docker compose run --rm rss-bot python migrations/migrate_v2.py
 | `/broadcast`    | ADMIN command to send a message to all users |
 
 
+## 🌐Supported Languages
+At the moment, the bot supports languages list below:
+
+- [x] English (EN) 🇺🇸
+- [x] Italian (IT) 🇮🇹
+- [x] Русский (RU) 🇷🇺
+- [x] Deutsch (DE) 🇩🇪
+- [ ] Persian (Fa) 🦁
+- [ ] Arabic (AR) 🇸🇦
+- [ ] French (FR) 🇫🇷
+- [ ] Turkey (TR) 🇹🇷
+
 ## 📝 Critique & Challenges
 
 #### Pros:
