@@ -26,5 +26,6 @@
     "contact_issue": "⚠️ Segnala un Problema!",
     "broadcast_conv_guid": "📢 **Modalità Broadcast**\n\nPer favore, inviami il messaggio che vuoi trasmettere.\nPuò essere **Solo testo** o una **Foto con didascalia**.\n\nDigita `/cancel` per annullare.",
     "start_broadcasting": "🚀 Starting broadcast to {all_users} users...",
-    "broadcasting_stats": "✅ **Broadcast Finished!**\n\n📤 Success: {count}\n📥 Failed/Blocked: {blocked}"
+    "broadcasting_stats": "✅ **Broadcast Finished!**\n\n📤 Success: {count}\n📥 Failed/Blocked: {blocked}",
+    "preview_msg": "🆓 *Anteprima Giornaliera (Versione Gratuita):*\n\n"
 }

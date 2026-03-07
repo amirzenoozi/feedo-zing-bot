@@ -27,5 +27,6 @@
     "contact_issue": "⚠️ Report a Problem!",
     "broadcast_conv_guid": "📢 **Broadcast Mode**\n\nPlease send me the message you want to broadcast.\nIt can be **Text only** or a **Photo with a caption**.\n\nType `/cancel` to abort.",
     "start_broadcasting": "🚀 Starting broadcast to {all_users} users...",
-    "broadcasting_stats": "✅ **Broadcast Finished!**\n\n📊 Success: {count}\n🚫 Failed/Blocked: {blocked}"
+    "broadcasting_stats": "✅ **Broadcast Finished!**\n\n📊 Success: {count}\n🚫 Failed/Blocked: {blocked}",
+    "preview_msg": "🆓 *Daily Preview (Free Version):*\n\n"
 }
