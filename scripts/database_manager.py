@@ -34,11 +34,14 @@ def add_user(user_id):
     conn.close()
 
 
-def get_all_users():
+def get_all_users(exclude_id=None):
     """Fetches all user IDs from the database for broadcasting."""
     conn = sqlite3.connect(DB_PATH)
     cursor = conn.cursor()
-    cursor.execute('SELECT user_id FROM users')
+    if exclude_id:
+        cursor.execute('SELECT user_id FROM users WHERE user_id != ?', (exclude_id,))
+    else:
+        cursor.execute('SELECT user_id FROM users')
     users = [row[0] for row in cursor.fetchall()]
     conn.close()
     return users
