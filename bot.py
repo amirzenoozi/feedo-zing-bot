@@ -119,6 +119,27 @@ async def user_feeds_command(update: Update, context: ContextTypes.DEFAULT_TYPE)
     )
 
 
+async def contacts_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    """Handles the /home command to show project links."""
+    lang = await get_lang(update, context)
+    text = MESSAGES[lang]['contact_message']
+    keyboard = [
+        [
+            InlineKeyboardButton(MESSAGES[lang]['contact_home_page'], url="https://amirdouzandeh.me/en"),
+            InlineKeyboardButton(MESSAGES[lang]['contact_github'], url="https://github.com/amirzenoozi/feedo-zing-bot")
+        ],
+        [
+            InlineKeyboardButton(MESSAGES[lang]['contact_issue'], url="https://github.com/amirzenoozi/feedo-zing-bot/issues/new")
+        ]
+    ]
+
+    await update.message.reply_text(
+        text,
+        reply_markup=InlineKeyboardMarkup(keyboard),
+        parse_mode="Markdown"
+    )
+
+
 async def admin_add_feed_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
     """Starts the official feed addition process (Admin only)."""
     user_id = update.effective_user.id
@@ -528,6 +549,7 @@ async def daily_broadcast(context: ContextTypes.DEFAULT_TYPE):
             print(f"General error in broadcast for {user_id}: {e}")
 
 
+
 # --- Main Application ---
 if __name__ == '__main__':
     if not TOKEN:
@@ -575,6 +597,7 @@ if __name__ == '__main__':
     application.add_handler(CommandHandler("get_now", get_news_now_command))
     application.add_handler(CommandHandler("stats", stats_command))
     application.add_handler(CommandHandler("admin_feeds", admin_manage_feeds_command))
+    application.add_handler(CommandHandler("about", contacts_command))
 
     # Payment Handlers
     application.add_handler(CallbackQueryHandler(button_tap_handler))
