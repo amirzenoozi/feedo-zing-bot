@@ -31,8 +31,10 @@ FREEMIUM_FEEDS_LIMIT = int(os.getenv('FREEMIUM_FEEDS_LIMIT'))
 
 LINKS_PATH = os.path.join("constants", "links.json")
 
+# --- Conversation Constant Variables ---
 WAITING_FOR_RSS_NAME, WAITING_FOR_RSS_URL = range(2)
 ADMIN_ADD_NAME, ADMIN_ADD_URL = range(3, 5)
+WAITING_FOR_BROADCAST = 10
 
 # --- Localization Data ---
 LOCALES_PATH = os.path.join(BASE_DIR, "locales")
@@ -362,6 +364,61 @@ async def handle_admin_feed_url(update: Update, context: ContextTypes.DEFAULT_TY
     await update.message.reply_text(MESSAGES[lang]['rss_add_successfully_admin'].format(name=name))
     return ConversationHandler.END
 
+
+# Handle Broadcast Conversation
+async def start_broadcast(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    """Admin starts the broadcast process."""
+    user_id = update.effective_user.id
+    lang = await get_lang(update, context)
+
+    if str(user_id) != str(ADMIN_ID):
+        await update.message.reply_text(MESSAGES[lang]['stats_error_text'])
+        return
+
+    await update.message.reply_text(MESSAGES[lang]['broadcast_conv_guid'], parse_mode="Markdown")
+    return WAITING_FOR_BROADCAST
+
+
+async def handle_broadcast_message(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    """Processes and sends the message to all users."""
+    admin_msg = update.message
+    all_users = database_manager.get_all_users()
+    lang = await get_lang(update, context)
+
+    count = 0
+    blocked = 0
+
+    await update.message.reply_text(MESSAGES[lang]['start_broadcasting'].format(all_users=len(all_users)))
+
+    for user_id in all_users:
+        try:
+            # If the admin sent a photo
+            if admin_msg.photo:
+                # Get the highest resolution photo
+                photo_file_id = admin_msg.photo[-1].file_id
+                await context.bot.send_photo(
+                    chat_id=user_id,
+                    photo=photo_file_id,
+                    caption=admin_msg.caption,
+                    caption_entities=admin_msg.caption_entities
+                )
+            # If the admin sent text only
+            elif admin_msg.text:
+                await context.bot.send_message(
+                    chat_id=user_id,
+                    text=admin_msg.text,
+                    entities=admin_msg.entities
+                )
+            count += 1
+        except Exception as e:
+            # Usually happens if a user blocked the bot
+            blocked += 1
+            continue
+
+    await update.message.reply_text(MESSAGES[lang]['broadcasting_stats'].format(count=count, blocked=blocked), parse_mode="Markdown")
+    return ConversationHandler.END
+
+
 # General Conversation Cancel Function
 async def cancel_conversation(update: Update, context: ContextTypes.DEFAULT_TYPE):
     """
@@ -587,9 +644,23 @@ if __name__ == '__main__':
         allow_reentry=True
     )
 
+    # Let Admin Broadcast a Message to all Users
+    broadcast_conv = ConversationHandler(
+        entry_points=[CommandHandler("broadcast", start_broadcast)],
+        states={
+            WAITING_FOR_BROADCAST: [
+                # Catch photos and text
+                MessageHandler(filters.PHOTO | filters.TEXT & ~filters.COMMAND, handle_broadcast_message)
+            ],
+        },
+        fallbacks=[CommandHandler("cancel", cancel_conversation)],
+        allow_reentry=True
+    )
+
     # Handlers
     application.add_handler(custom_rss_conv)
     application.add_handler(admin_feed_conv)
+    application.add_handler(broadcast_conv)
     application.add_handler(CommandHandler("start", start_command))
     application.add_handler(CommandHandler("subscribe", send_invoice_command))
     application.add_handler(CommandHandler("language", language_command))
