@@ -59,7 +59,8 @@ docker compose run --rm rss-bot python migrations/migrate_v2.py
 | `/add_official` | ADMIN command to add a new RSS feed         |
 | `/stats`        | ADMIN command to see the statistics         |
 | `/get_now`      | Premium command to get the latest news Now  |
-| `feeds`         | Manage your own subscribed feeds            |
+| `/feeds`        | Manage your own subscribed feeds            |
+|`/admin_feeds`   | ADMIN command to manage all feeds           |
 
 
 ## 📝 Critique & Challenges
