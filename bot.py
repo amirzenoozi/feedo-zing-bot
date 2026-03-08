@@ -104,16 +104,11 @@ async def profile_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
     user_info = database_manager.get_user_info(user_id) # Assume this helper returns a dict
     tz = user_info.get('timezone', 'UTC')
 
-    text = (
-        f"👤 **Your Profile**\n\n"
-        f"🌐 **Timezone:** `{tz}`\n"
-        f"🌍 **Language:** `{lang.upper()}`\n\n"
-        "Select an option below to update your settings:"
-    )
+    text = MESSAGES[lang]['profile']['first_step'].format(tz=tz, lang=lang.upper())
 
     keyboard = [
-        [InlineKeyboardButton("📍 Sync Timezone", callback_data="sync_tz")],
-        [InlineKeyboardButton("🌐 Change Language", callback_data="change_lang")]
+        [InlineKeyboardButton(MESSAGES[lang]['profile']['sync_btn'], callback_data="sync_tz")],
+        [InlineKeyboardButton(MESSAGES[lang]['profile']['change_lng_btn'], callback_data="change_lang")]
     ]
     reply_markup = InlineKeyboardMarkup(keyboard)
 
@@ -136,16 +131,11 @@ async def profile_command_edit(update: Update, context: ContextTypes.DEFAULT_TYP
     tz = user_info.get('timezone', 'UTC')
 
     # 3. Build the same UI as the original /profile command
-    text = (
-        f"👤 **Your Profile**\n\n"
-        f"🌐 **Timezone:** `{tz}`\n"
-        f"🌍 **Language:** `{lang.upper()}`\n\n"
-        "Select an option below to update your settings:"
-    )
+    text = MESSAGES[lang]['profile']['first_step'].format(tz=tz, lang=lang.upper())
 
     keyboard = [
-        [InlineKeyboardButton("📍 Sync Timezone", callback_data="sync_tz")],
-        [InlineKeyboardButton("🌐 Change Language", callback_data="show_languages")]
+        [InlineKeyboardButton(MESSAGES[lang]['profile']['sync_btn'], callback_data="sync_tz")],
+        [InlineKeyboardButton(MESSAGES[lang]['profile']['change_lng_btn'], callback_data="change_lang")]
     ]
 
     # 4. Use edit_message_text instead of reply_text
@@ -515,16 +505,12 @@ async def button_tap_handler(update: Update, context: ContextTypes.DEFAULT_TYPE)
     elif data == "sync_tz":
         # Transition to Location Request
         lang = await get_lang(update, context)
-        await query.edit_message_text(
-            "🔄 **Timezone Sync**\n\nPlease click the button below to share your location. "
-            "I will use it to set your timezone and then immediately hide the keyboard.",
-            parse_mode="Markdown"
-        )
+        await query.edit_message_text(MESSAGES[lang]['profile']['sync_timezone_guid'], parse_mode="Markdown")
         # Send the ReplyKeyboardMarkup (The big button at the bottom)
-        location_btn = [[KeyboardButton("📍 Share My Location", request_location=True)]]
+        location_btn = [[KeyboardButton(MESSAGES[lang]['profile']['share_location_btn'], request_location=True)]]
         await context.bot.send_message(
             chat_id=update.effective_chat.id,
-            text="Tap here 👇",
+            text=MESSAGES[lang]['profile']['tap_here'],
             reply_markup=ReplyKeyboardMarkup(location_btn, resize_keyboard=True, one_time_keyboard=True)
         )
 
@@ -598,6 +584,7 @@ async def profile_callback_handler(update: Update, context: ContextTypes.DEFAULT
     query = update.callback_query
     await query.answer()
     user_id = update.effective_user.id
+    lang = await get_lang(update, context)
 
     if query.data == "show_languages":
         # Merging logic: Replace Profile text with Language menu
@@ -606,7 +593,7 @@ async def profile_callback_handler(update: Update, context: ContextTypes.DEFAULT
              InlineKeyboardButton("Italiano 🇮🇹", callback_data="set_lang_it")],
             [InlineKeyboardButton("Русский 🇷🇺", callback_data="set_lang_ru"),
              InlineKeyboardButton("Deutsch 🇩🇪", callback_data="set_lang_de")],
-            [InlineKeyboardButton("⬅️ Back to Profile", callback_data="back_to_profile")]
+            [InlineKeyboardButton(MESSAGES[lang]['profile']['back_to_profile'], callback_data="back_to_profile")]
         ]
         await query.edit_message_text(
             MESSAGES[context.user_data.get('lang', 'en')]['choose_lang'],
@@ -620,11 +607,11 @@ async def profile_callback_handler(update: Update, context: ContextTypes.DEFAULT
         await profile_command_edit(update, context)
 
     elif query.data == "sync_tz":
-        await query.edit_message_text("🔄 Please share your location using the button at the bottom.")
-        location_keyboard = [[KeyboardButton("📍 Share Location", request_location=True)]]
+        await query.edit_message_text(MESSAGES[lang]['profile']['share_location_guid'])
+        location_keyboard = [[KeyboardButton(MESSAGES[lang]['profile']['share_location_btn'], request_location=True)]]
         await context.bot.send_message(
             chat_id=update.effective_chat.id,
-            text="Confirm location share:",
+            text=MESSAGES[lang]['profile']['confirm_location'],
             reply_markup=ReplyKeyboardMarkup(location_keyboard, resize_keyboard=True, one_time_keyboard=True)
         )
 
@@ -632,9 +619,10 @@ async def profile_callback_handler(update: Update, context: ContextTypes.DEFAULT
 async def handle_location(update: Update, context: ContextTypes.DEFAULT_TYPE):
     user_location = update.message.location
     user_id = update.effective_user.id
+    lang = await get_lang(update, context)
 
     # Hide the big button immediately
-    status_msg = await update.message.reply_text("⏳ Syncing...", reply_markup=ReplyKeyboardRemove())
+    status_msg = await update.message.reply_text(MESSAGES[lang]['profile']['syncing'], reply_markup=ReplyKeyboardRemove())
 
     lat = user_location.latitude
     lon = user_location.longitude
@@ -642,7 +630,12 @@ async def handle_location(update: Update, context: ContextTypes.DEFAULT_TYPE):
     tz_name, offset = timezone_service.get_timezone_from_coords(lat, lon)
     database_manager.update_user_timezone(user_id, tz_name, offset, lat, lon)
 
-    await status_msg.edit_text(f"✅ Timezone set to `{tz_name}`!")
+    await status_msg.delete()
+    await update.message.reply_text(
+        MESSAGES[lang]['profile']['timezone_updated'].format(tz=tz_name, offset=f"{offset:+}"),
+        reply_markup=ReplyKeyboardRemove(),
+        parse_mode="Markdown"
+    )
 
 
 # --- Payment Handling ---
