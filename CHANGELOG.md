@@ -10,6 +10,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [2.1.0] - 2026-04-08
+### Changed
+- Update Translations
+- Use Translations Instead of Static Text
+
 ## [2.0.3] - 2026-04-08
 ### Added
 - Add `/profile` Command
