@@ -6,7 +6,7 @@ import asyncio
 import random
 
 from dotenv import load_dotenv
-from telegram import Update, LabeledPrice, InlineKeyboardButton, InlineKeyboardMarkup
+from telegram import Update, LabeledPrice, InlineKeyboardButton, InlineKeyboardMarkup, ReplyKeyboardMarkup, KeyboardButton, ReplyKeyboardRemove
 from telegram.ext import (
     Application,
     CommandHandler,
@@ -15,9 +15,6 @@ from telegram.ext import (
     PreCheckoutQueryHandler,
     MessageHandler,
     ConversationHandler,
-    ReplyKeyboardMarkup,
-    KeyboardButton,
-    ReplyKeyboardRemove,
     filters
 )
 
