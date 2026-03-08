@@ -82,11 +82,11 @@ def update_subscription(user_id, days=30):
     return new_expiry
 
 
-def update_user_timezone(user_id, timezone_name, offset):
+def update_user_timezone(user_id, timezone_name, offset, lat=None, lon=None):
     """Updates the user's timezone and UTC offset in the DB."""
     conn = sqlite3.connect(DB_PATH)
     cursor = conn.cursor()
-    cursor.execute('UPDATE users SET timezone = ?, utc_offset = ? WHERE user_id = ?', (timezone_name, offset, user_id))
+    cursor.execute('UPDATE users SET timezone = ?, utc_offset = ?, latitude = ?, longitude = ? WHERE user_id = ?', (timezone_name, offset, lat, lon, user_id))
     conn.commit()
     conn.close()
 
