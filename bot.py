@@ -652,7 +652,8 @@ if __name__ == '__main__':
             CommandHandler("cancel", cancel_conversation),
             CallbackQueryHandler(cancel_conversation, pattern="^cancel_settings$")
         ],
-        allow_reentry=True
+        allow_reentry=True,
+        per_message=False
     )
 
     # Let Admin register Feeds for all Users
@@ -663,7 +664,8 @@ if __name__ == '__main__':
             ADMIN_ADD_URL: [MessageHandler(filters.TEXT & ~filters.COMMAND, handle_admin_feed_url)],
         },
         fallbacks=[CommandHandler("cancel", cancel_conversation)],
-        allow_reentry=True
+        allow_reentry=True,
+        per_message = False
     )
 
     # Let Admin Broadcast a Message to all Users
@@ -676,7 +678,8 @@ if __name__ == '__main__':
             ],
         },
         fallbacks=[CommandHandler("cancel", cancel_conversation)],
-        allow_reentry=True
+        allow_reentry=True,
+        per_message=False
     )
 
     # Handlers
