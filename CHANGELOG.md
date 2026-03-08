@@ -10,7 +10,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
-## [2.0.0] - 2026-04-08
+## [2.0.1] - 2026-04-08
 ### Added
 - Add `/profile` Command
 - Save User Timezone to Implement `DoNotDisturb` Feature
@@ -18,6 +18,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 - Deprecate `/language` Command
+
+### Fixed
+- Solve Import Issue in `bot.py`
+
 
 ## [1.6.3] - 2026-04-08
 ### Fixed
