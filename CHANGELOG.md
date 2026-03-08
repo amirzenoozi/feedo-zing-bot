@@ -10,10 +10,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
-## [1.6.2] - 2026-04-08
+## [1.6.3] - 2026-04-08
 ### Fixed
 - Update `send_news_to_chat` to include `is_premium` parameter
 - Solve `per_message` Warning for Conversation Handlers
+- Handle None `user_data`
 
 
 ## [1.6.1] - 2026-04-07
