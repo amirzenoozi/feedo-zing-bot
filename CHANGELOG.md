@@ -13,6 +13,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [1.6.2] - 2026-04-08
 ### Fixed
 - Update `send_news_to_chat` to include `is_premium` parameter
+- Solve `per_message` Warning for Conversation Handlers
 
 
 ## [1.6.1] - 2026-04-07
