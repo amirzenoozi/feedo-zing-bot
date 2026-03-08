@@ -76,7 +76,6 @@ async def start_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
     keyboard = [
         [InlineKeyboardButton(MESSAGES[lang]['sub_btn'], callback_data="buy_sub")],
         [InlineKeyboardButton(MESSAGES[lang]['news_btn'], callback_data="get_now")],
-        [InlineKeyboardButton(MESSAGES[lang]['lang_btn'], callback_data="show_lang_menu")]
     ]
     reply_markup = InlineKeyboardMarkup(keyboard)
 
@@ -499,8 +498,37 @@ async def button_tap_handler(update: Update, context: ContextTypes.DEFAULT_TYPE)
 
     lang = await get_lang(update, context)
 
-    # 1. Main Navigation
-    if data == "view_presets_0":
+    if data == "show_languages":
+        keyboard = [[
+            InlineKeyboardButton("English 🇺🇸", callback_data="set_lang_en"),
+            InlineKeyboardButton("Italiano 🇮🇹", callback_data="set_lang_it")
+        ],[
+            InlineKeyboardButton("Русский 🇷🇺", callback_data="set_lang_ru"),
+            InlineKeyboardButton("Deutsch 🇩🇪", callback_data="set_lang_de")
+        ]]
+        await query.message.edit_text(MESSAGES[lang]['choose_lang'], reply_markup=InlineKeyboardMarkup(keyboard))
+
+    elif data == "back_to_profile":
+        # Calls the helper to refresh the profile view
+        await profile_command_edit(update, context)
+
+    elif data == "sync_tz":
+        # Transition to Location Request
+        lang = await get_lang(update, context)
+        await query.edit_message_text(
+            "🔄 **Timezone Sync**\n\nPlease click the button below to share your location. "
+            "I will use it to set your timezone and then immediately hide the keyboard.",
+            parse_mode="Markdown"
+        )
+        # Send the ReplyKeyboardMarkup (The big button at the bottom)
+        location_btn = [[KeyboardButton("📍 Share My Location", request_location=True)]]
+        await context.bot.send_message(
+            chat_id=update.effective_chat.id,
+            text="Tap here 👇",
+            reply_markup=ReplyKeyboardMarkup(location_btn, resize_keyboard=True, one_time_keyboard=True)
+        )
+
+    elif data == "view_presets_0":
         await query.message.edit_reply_markup(reply_markup=get_feeds_keyboard(user_id, page=0))
 
     elif data == "back_to_settings_main":
@@ -549,16 +577,6 @@ async def button_tap_handler(update: Update, context: ContextTypes.DEFAULT_TYPE)
 
     elif query.data == "buy_sub":
         await send_invoice_command(update, context)
-
-    elif query.data == "show_lang_menu":
-        keyboard = [[
-            InlineKeyboardButton("English 🇺🇸", callback_data="set_lang_en"),
-            InlineKeyboardButton("Italiano 🇮🇹", callback_data="set_lang_it")
-        ],[
-            InlineKeyboardButton("Русский 🇷🇺", callback_data="set_lang_ru"),
-            InlineKeyboardButton("Deutsch 🇩🇪", callback_data="set_lang_de")
-        ]]
-        await query.message.edit_text(MESSAGES[lang]['choose_lang'], reply_markup=InlineKeyboardMarkup(keyboard))
 
     elif query.data.startswith("set_lang_"):
         new_lang = query.data.split("_")[-1]
@@ -609,7 +627,6 @@ async def profile_callback_handler(update: Update, context: ContextTypes.DEFAULT
             text="Confirm location share:",
             reply_markup=ReplyKeyboardMarkup(location_keyboard, resize_keyboard=True, one_time_keyboard=True)
         )
-
 
 
 async def handle_location(update: Update, context: ContextTypes.DEFAULT_TYPE):
