@@ -108,7 +108,7 @@ async def profile_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
     keyboard = [
         [InlineKeyboardButton(MESSAGES[lang]['profile']['sync_btn'], callback_data="sync_tz")],
-        [InlineKeyboardButton(MESSAGES[lang]['profile']['change_lng_btn'], callback_data="change_lang")]
+        [InlineKeyboardButton(MESSAGES[lang]['profile']['change_lng_btn'], callback_data="show_languages")]
     ]
     reply_markup = InlineKeyboardMarkup(keyboard)
 
@@ -135,7 +135,7 @@ async def profile_command_edit(update: Update, context: ContextTypes.DEFAULT_TYP
 
     keyboard = [
         [InlineKeyboardButton(MESSAGES[lang]['profile']['sync_btn'], callback_data="sync_tz")],
-        [InlineKeyboardButton(MESSAGES[lang]['profile']['change_lng_btn'], callback_data="change_lang")]
+        [InlineKeyboardButton(MESSAGES[lang]['profile']['change_lng_btn'], callback_data="show_languages")]
     ]
 
     # 4. Use edit_message_text instead of reply_text
