@@ -30,6 +30,7 @@ TOKEN = os.getenv('TELEGRAM_BOT_TOKEN')
 ADMIN_ID = os.getenv('ADMIN_ID')
 PREMIUM_FEEDS_LIMIT = int(os.getenv('PREMIUM_FEEDS_LIMIT'))
 FREEMIUM_FEEDS_LIMIT = int(os.getenv('FREEMIUM_FEEDS_LIMIT'))
+TARGET_LOCAL_HOUR = int(os.getenv('TARGET_LOCAL_HOUR'))
 
 LINKS_PATH = os.path.join("constants", "links.json")
 
@@ -739,6 +740,55 @@ async def daily_broadcast(context: ContextTypes.DEFAULT_TYPE):
             print(f"Error in Freemium broadcast for {user_id}: {e}")
 
 
+async def hourly_timezone_broadcast(context: ContextTypes.DEFAULT_TYPE):
+    # 1. What is the current UTC hour?
+    utc_now = datetime.datetime.now(datetime.timezone.utc)
+    utc_hour = utc_now.hour
+
+    # 2. Target Local Hour is 9 (9:00 AM)
+    target_local_hour = TARGET_LOCAL_HOUR
+
+    # 3. Calculate the offset we are looking for:
+    # Offset = Target - CurrentUTC
+    # If UTC is 7:00 and we want 9:00, we need users with +2 offset
+    required_offset = target_local_hour - utc_hour
+
+    # Handle wrap-around for negative results (e.g., across midnight)
+    if required_offset <= -12: required_offset += 24
+    if required_offset > 12: required_offset -= 24
+
+    target_users = database_manager.get_users_by_offset(required_offset)
+
+    if not target_users:
+        return
+
+    feed_cache = {}
+
+    for user in target_users:
+        user_id = user[0]
+        is_subscribed = user[1]
+        expiry_date_str = user[2]
+
+        is_premium = False
+        if is_subscribed == 1:
+            if expiry_date_str:
+                try:
+                    expiry_dt = datetime.datetime.strptime(expiry_date_str, '%Y-%m-%d %H:%M:%S')
+                    if expiry_dt > datetime.datetime.now():
+                        is_premium = True
+                    else:
+                        print(f"🔔 Subscription expired for user {user_id}. Updating DB...")
+                        database_manager.deactivate_subscription(user_id)
+                        is_premium = False
+                except (ValueError, TypeError):
+                    is_premium = False
+
+        try:
+            await send_news_to_chat(user_id, context, feed_cache, is_premium=is_premium)
+            await asyncio.sleep(0.05)
+        except Exception as e:
+            print(f"Failed to send to {user_id}: {e}")
+
 
 # --- Main Application ---
 if __name__ == '__main__':
@@ -817,7 +867,8 @@ if __name__ == '__main__':
 
     # Job Queue for Daily Updates (e.g., 09:00 AM)
     job_queue = application.job_queue
-    job_queue.run_daily(daily_broadcast, time=datetime.time(hour=9, minute=0, second=0))
+    job_queue.run_repeating(hourly_timezone_broadcast, interval=3600, first=10)
+    # job_queue.run_daily(daily_broadcast, time=datetime.time(hour=9, minute=0, second=0))
 
     print("Bot is live with Admin Mode and Stars Payment...")
     application.run_polling()
