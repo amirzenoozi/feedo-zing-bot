@@ -622,8 +622,11 @@ async def handle_location(update: Update, context: ContextTypes.DEFAULT_TYPE):
     # Hide the big button immediately
     status_msg = await update.message.reply_text("⏳ Syncing...", reply_markup=ReplyKeyboardRemove())
 
-    tz_name, offset = timezone_service.get_timezone_from_coords(user_location.latitude, user_location.longitude)
-    database_manager.update_user_timezone(user_id, tz_name, offset)
+    lat = user_location.latitude
+    lon = user_location.longitude
+
+    tz_name, offset = timezone_service.get_timezone_from_coords(lat, lon)
+    database_manager.update_user_timezone(user_id, tz_name, offset, lat, lon)
 
     await status_msg.edit_text(f"✅ Timezone set to `{tz_name}`!")
 
