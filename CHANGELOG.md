@@ -19,6 +19,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Update Translations
 - Set `is_subscribed` to `False` when user subscription is ended
 
+
 ## [2.1.2] - 2026-04-08
 ### Fixed
 - Solve language change button callback to show available languages 
