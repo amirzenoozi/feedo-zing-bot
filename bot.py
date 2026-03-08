@@ -217,7 +217,7 @@ async def get_news_now_command(update: Update, context: ContextTypes.DEFAULT_TYP
         wait_msg = await update.message.reply_text(wait_text)
 
         # Call the existing modular function
-        await send_news_to_chat(user_id, context, feed_cache={})
+        await send_news_to_chat(user_id, context, feed_cache={}, is_premium=True)
 
         # Clean up the "Fetching..." message
         await wait_msg.delete()
@@ -524,7 +524,7 @@ async def button_tap_handler(update: Update, context: ContextTypes.DEFAULT_TYPE)
         subscribers = database_manager.get_active_subscribers()
         if user_id in subscribers or (ADMIN_ID and str(user_id) == str(ADMIN_ID)):
             await query.message.reply_text(MESSAGES[lang]['fetching'])
-            await send_news_to_chat(query.message.chat_id, context, {}, True)
+            await send_news_to_chat(query.message.chat_id, context, {}, is_premium=True)
         else:
             await query.message.reply_text(MESSAGES[lang]['sub_req'])
 
