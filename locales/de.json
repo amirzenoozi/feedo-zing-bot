@@ -28,5 +28,18 @@
     "broadcast_conv_guid": "📢 **Broadcast-Modus**\n\nBitte senden Sie mir die Nachricht, die Sie übertragen möchten.\nEs kann **nur Text** oder ein **Foto mit Beschreibung** sein.\n\nGeben Sie `/cancel` ein, um abzubrechen.",
     "start_broadcasting": "🚀 Starte Broadcast an {all_users} Benutzer...",
     "broadcasting_stats": "✅ **Broadcast abgeschlossen!**\n\n📊 Erfolgreich: {count}\n🚫 Fehlgeschlagen/Blockiert: {blocked}",
-    "preview_msg": "🆓 *Tägliche Vorschau (Kostenlose Version):*\n\n"
+    "preview_msg": "🆓 *Tägliche Vorschau (Kostenlose Version):*\n\n",
+    "profile": {
+        "first_step": "👤 **Ihr Profil**\n\n🌐 **Sprache:** `{lang}`\n📍 **Zeitzone:** `{tz}`\n\nWählen Sie unten eine Option, um Ihre Einstellungen zu aktualisieren:",
+        "sync_timezone_guid": "🔄 **Zeitzonen-Synchronisierung**\n\nBitte klicken Sie auf die Schaltfläche unten, um Ihren Standort zu teilen.",
+        "share_location_guid": "🔄 Bitte teilen Sie Ihren Standort mit der Schaltfläche unten.",
+        "confirm_location": "Standortfreigabe bestätigen:",
+        "timezone_updated": "✅ **Zeitzone aktualisiert!**\n\n📍 **Zone:** `{tz}`\n🕕 **Offset:** `{offset}` Stunden",
+        "syncing": "⏳ Synchronisierung läuft...",
+        "sync_btn": "📍 Zeitzone synchronisieren",
+        "change_lng_btn": "🌐 Sprache ändern",
+        "share_location_btn": "📍 Meinen Standort teilen",
+        "tap_here": "Hier tippen 👇🏻",
+        "back_to_profile": "⬅️ Zurück zum Profil"
+    }
 }

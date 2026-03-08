@@ -2,7 +2,6 @@
     "start": "Welcome to the RSS News Bot!\n\nTo receive daily updates, you need a subscription.",
     "sub_btn": "⭐ Subscribe (10 Stars)",
     "news_btn": "📰 Get News Now",
-    "lang_btn": "🌐 Change Language",
     "choose_lang": "Please choose your preferred language:",
     "lang_set": "Language set to English! 🇺🇸",
     "sub_req": "❌ Subscription required. Please subscribe first.",
@@ -28,5 +27,18 @@
     "broadcast_conv_guid": "📢 **Broadcast Mode**\n\nPlease send me the message you want to broadcast.\nIt can be **Text only** or a **Photo with a caption**.\n\nType `/cancel` to abort.",
     "start_broadcasting": "🚀 Starting broadcast to {all_users} users...",
     "broadcasting_stats": "✅ **Broadcast Finished!**\n\n📊 Success: {count}\n🚫 Failed/Blocked: {blocked}",
-    "preview_msg": "🆓 *Daily Preview (Free Version):*\n\n"
+    "preview_msg": "🆓 *Daily Preview (Free Version):*\n\n",
+    "profile": {
+        "first_step": "👤 **Your Profile**\n\n🌐 **Language:** `{lang}`\n 📍 **Timezone:** `{tz}`\n\nSelect an option below to update your settings:",
+        "sync_timezone_guid": "🔄 **Timezone Sync**\n\nPlease click the button below to share your location. ",
+        "share_location_guid": "🔄 Please share your location using the button at the bottom.",
+        "confirm_location": "Confirm location share:",
+        "timezone_updated": "✅ **Timezone Updated!**\n\n 📍 **Zone:** `{tz}`\n🕕 **Offset:** `{offset}` Hour",
+        "syncing": "⏳ Syncing...",
+        "sync_btn": "📍 Sync Timezone",
+        "change_lng_btn": "🌐 Change Language",
+        "share_location_btn": "📍 Share My Location",
+        "tap_here": "Tap here 👇🏻",
+        "back_to_profile": "⬅️ Back to Profile"
+    }
 }

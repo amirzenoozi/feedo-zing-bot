@@ -27,5 +27,18 @@
     "broadcast_conv_guid": "📢 **Modalità Broadcast**\n\nPer favore, inviami il messaggio che vuoi trasmettere.\nPuò essere **Solo testo** o una **Foto con didascalia**.\n\nDigita `/cancel` per annullare.",
     "start_broadcasting": "🚀 Starting broadcast to {all_users} users...",
     "broadcasting_stats": "✅ **Broadcast Finished!**\n\n📤 Success: {count}\n📥 Failed/Blocked: {blocked}",
-    "preview_msg": "🆓 *Anteprima Giornaliera (Versione Gratuita):*\n\n"
+    "preview_msg": "🆓 *Anteprima Giornaliera (Versione Gratuita):*\n\n",
+    "profile": {
+        "first_step": "👤 **Il Tuo Profilo**\n\n🌐 **Lingua:** `{lang}`\n⏰ **Fuso Orario:** `{tz}`\n\nSeleziona un'opzione qui sotto per aggiornare le tue impostazioni:",
+        "sync_timezone_guid": "🔄 **Sincronizzazione Fuso Orario**\n\nPer favore, clicca il pulsante qui sotto per condividere la tua posizione. ",
+        "share_location_guid": "🔄 Per favore, condividi la tua posizione usando il pulsante in basso.",
+        "confirm_location": "Conferma condivisione posizione:",
+        "timezone_updated": "✅ **Fuso Orario Aggiornato!**\n\n📍 **Zona:** `{tz}`\n⏰ **Offset:** `{offset}` Ore",
+        "syncing": "⏳ Sincronizzazione in corso...",
+        "sync_btn": "📍 Sincronizza Fuso Orario",
+        "change_lng_btn": "🌐 Cambia Lingua",
+        "share_location_btn": "📍 Condividi la Mia Posizione",
+        "tap_here": "Clicca qui 👇",
+        "back_to_profile": "⬅️ Torna al Profilo"
+    }
 }
