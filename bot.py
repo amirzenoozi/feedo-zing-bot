@@ -561,7 +561,6 @@ async def fetch_and_format_feed(feed_name, feed_url):
 async def send_news_to_chat(chat_id, context, feed_cache, is_premium):
     """Sends personalized news to a specific chat based on user selection."""
     user_feeds = database_manager.get_user_selected_feeds(chat_id)
-    lang = context.user_data.get('lang') or database_manager.get_user_language(chat_id)
     is_random = False
 
     # Check if user has selected anything
@@ -577,6 +576,7 @@ async def send_news_to_chat(chat_id, context, feed_cache, is_premium):
         user_feeds = [random.choice(user_feeds)]
 
     full_message = ""
+    lang = context.user_data.get('lang') or database_manager.get_user_language(chat_id)
     if is_random:
         note = f"${MESSAGES[lang]['random_news']} \n\n"
         full_message += note
