@@ -82,6 +82,26 @@ def update_subscription(user_id, days=30):
     return new_expiry
 
 
+def update_user_timezone(user_id, timezone_name, offset):
+    """Updates the user's timezone and UTC offset in the DB."""
+    conn = sqlite3.connect(DB_PATH)
+    cursor = conn.cursor()
+    cursor.execute('UPDATE users SET timezone = ?, utc_offset = ? WHERE user_id = ?', (timezone_name, offset, user_id))
+    conn.commit()
+    conn.close()
+
+
+def get_user_info(user_id):
+    """Fetches all settings for a specific user."""
+    conn = sqlite3.connect(DB_PATH)
+    conn.row_factory = sqlite3.Row  # This allows accessing columns by name
+    cursor = conn.cursor()
+    cursor.execute('SELECT * FROM users WHERE user_id = ?', (user_id,))
+    row = cursor.fetchone()
+    conn.close()
+    return dict(row) if row else {}
+
+
 def set_user_language(user_id, lang_code):
     """Updates the preferred language for a specific user."""
     conn = sqlite3.connect(DB_PATH)
