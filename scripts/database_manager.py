@@ -70,6 +70,15 @@ def get_active_subscribers():
     return users
 
 
+def get_users_by_offset(offset):
+    conn = sqlite3.connect(DB_PATH)
+    cursor = conn.cursor()
+    cursor.execute('SELECT user_id, is_subscribed, expiry_date, language FROM users WHERE utc_offset >= ? AND utc_offset < ?', (offset - 0.1, offset + 0.1))
+    rows = cursor.fetchall()
+    conn.close()
+    return rows
+
+
 def update_subscription(user_id, days=30):
     # Logic to extend or activate subscription
     from datetime import timedelta
@@ -80,6 +89,15 @@ def update_subscription(user_id, days=30):
     conn.commit()
     conn.close()
     return new_expiry
+
+
+def deactivate_subscription(user_id):
+    """ Sets is_subscribed to 0 and clears the expiry date for a user."""
+    conn = sqlite3.connect(DB_PATH)
+    cursor = conn.cursor()
+    cursor.execute('UPDATE users SET is_subscribed = 0, expiry_date = NULL WHERE user_id = ?', (user_id,))
+    conn.commit()
+    conn.close()
 
 
 def update_user_timezone(user_id, timezone_name, offset, lat=None, lon=None):
