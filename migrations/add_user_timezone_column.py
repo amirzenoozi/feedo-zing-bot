@@ -22,6 +22,8 @@ def migrate():
     new_columns = {
         'timezone': "TEXT DEFAULT 'UTC'",
         'utc_offset': "REAL DEFAULT 0.0",
+        'latitude': "REAL",
+        'longitude': "REAL",
         'silent_start': "INTEGER DEFAULT 23",
         'silent_end': "INTEGER DEFAULT 8"
     }
