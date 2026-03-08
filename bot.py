@@ -701,7 +701,7 @@ if __name__ == '__main__':
     job_queue = application.job_queue
     job_queue.run_daily(
         daily_broadcast,
-        time=datetime.time(hour=9, minute=0, second=0)
+        time=datetime.time(hour=10, minute=10, second=0)
     )
 
     print("Bot is live with Admin Mode and Stars Payment.")
