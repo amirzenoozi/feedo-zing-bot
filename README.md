@@ -1,4 +1,4 @@
-# 🤖 RSS News Telegram Bot
+# 🤖 FeedoZing Telegram Bot
 
 A high-performance Telegram Bot built with Python that fetches RSS feeds and delivers them to subscribers. It features **Telegram Stars** payment integration, multi-language support (English & Italian), and an automated daily broadcast system.
 
