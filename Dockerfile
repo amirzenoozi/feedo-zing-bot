@@ -13,6 +13,7 @@ RUN pip install --no-cache-dir \
     python-telegram-bot[job-queue] \
     asyncio \
     feedparser \
+    requests \
     python-dotenv
 
 # Copy the project files
