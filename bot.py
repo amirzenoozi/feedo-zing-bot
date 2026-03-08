@@ -15,12 +15,16 @@ from telegram.ext import (
     PreCheckoutQueryHandler,
     MessageHandler,
     ConversationHandler,
+    ReplyKeyboardMarkup,
+    KeyboardButton,
+    ReplyKeyboardRemove,
     filters
 )
 
 # Import our custom database functions
 from scripts import database_manager
 from scripts.utils import load_all_locales
+from scripts import timezone_service
 
 # Load environment variables
 load_dotenv()
@@ -82,36 +86,6 @@ async def start_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
     await update.message.reply_text(MESSAGES[lang]['start'], reply_markup=reply_markup)
 
 
-async def stats_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    """Shows bot statistics."""
-    user_id = update.effective_user.id
-    lang = await get_lang(update, context)
-
-    if ADMIN_ID and str(user_id) == str(ADMIN_ID):
-        users_count, premium_counts, custom_feeds_count = database_manager.get_stats_for_admin()
-        text = MESSAGES[lang]['stats_template'].format(users=users_count, subscribers=premium_counts, custom_feeds=custom_feeds_count)
-        await update.message.reply_text(text, parse_mode='Markdown')
-    else:
-        await update.message.reply_text(MESSAGES[lang]['stats_error_text'])
-        return
-
-
-async def language_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    """Command or menu to change language."""
-    lang = await get_lang(update, context)
-    keyboard = [[
-        InlineKeyboardButton("English 🇺🇸", callback_data="set_lang_en"),
-        InlineKeyboardButton("Italiano 🇮🇹", callback_data="set_lang_it")
-    ],[
-        InlineKeyboardButton("Русский 🇷🇺", callback_data="set_lang_ru"),
-        InlineKeyboardButton("Deutsch 🇩🇪", callback_data="set_lang_de")
-    ]]
-    await update.message.reply_text(
-        MESSAGES[lang]['choose_lang'],
-        reply_markup=InlineKeyboardMarkup(keyboard)
-    )
-
-
 async def user_feeds_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
     """Opens the feed selection menu."""
     user_id = update.effective_user.id
@@ -122,6 +96,67 @@ async def user_feeds_command(update: Update, context: ContextTypes.DEFAULT_TYPE)
     await update.message.reply_text(
         text,
         reply_markup=get_settings_main_keyboard()
+    )
+
+
+async def profile_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    """Initial Profile message with Inline Buttons."""
+    user_id = update.effective_user.id
+    lang = await get_lang(update, context)
+
+    # Fetch current settings to show the user
+    user_info = database_manager.get_user_info(user_id) # Assume this helper returns a dict
+    tz = user_info.get('timezone', 'UTC')
+
+    text = (
+        f"👤 **Your Profile**\n\n"
+        f"🌐 **Timezone:** `{tz}`\n"
+        f"🌍 **Language:** `{lang.upper()}`\n\n"
+        "Select an option below to update your settings:"
+    )
+
+    keyboard = [
+        [InlineKeyboardButton("📍 Sync Timezone", callback_data="sync_tz")],
+        [InlineKeyboardButton("🌐 Change Language", callback_data="change_lang")]
+    ]
+    reply_markup = InlineKeyboardMarkup(keyboard)
+
+    await update.message.reply_text(text, reply_markup=reply_markup, parse_mode="Markdown")
+
+
+async def profile_command_edit(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    """
+    Helper function to refresh the profile view by editing the current message.
+    Used when returning from sub-menus like Language selection.
+    """
+    query = update.callback_query
+    user_id = update.effective_user.id
+
+    # 1. Get current language and user info safely
+    lang = context.user_data.get('lang') or database_manager.get_user_language(user_id) or 'en'
+    user_info = database_manager.get_user_info(user_id) or {}
+
+    # 2. Extract current settings
+    tz = user_info.get('timezone', 'UTC')
+
+    # 3. Build the same UI as the original /profile command
+    text = (
+        f"👤 **Your Profile**\n\n"
+        f"🌐 **Timezone:** `{tz}`\n"
+        f"🌍 **Language:** `{lang.upper()}`\n\n"
+        "Select an option below to update your settings:"
+    )
+
+    keyboard = [
+        [InlineKeyboardButton("📍 Sync Timezone", callback_data="sync_tz")],
+        [InlineKeyboardButton("🌐 Change Language", callback_data="show_languages")]
+    ]
+
+    # 4. Use edit_message_text instead of reply_text
+    await query.edit_message_text(
+        text,
+        reply_markup=InlineKeyboardMarkup(keyboard),
+        parse_mode="Markdown"
     )
 
 
@@ -175,6 +210,20 @@ async def admin_manage_feeds_command(update: Update, context: ContextTypes.DEFAU
         reply_markup=get_admin_manage_feeds_keyboard(),
         parse_mode="Markdown"
     )
+
+
+async def admin_stats_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    """Shows bot statistics."""
+    user_id = update.effective_user.id
+    lang = await get_lang(update, context)
+
+    if ADMIN_ID and str(user_id) == str(ADMIN_ID):
+        users_count, premium_counts, custom_feeds_count = database_manager.get_stats_for_admin()
+        text = MESSAGES[lang]['stats_template'].format(users=users_count, subscribers=premium_counts, custom_feeds=custom_feeds_count)
+        await update.message.reply_text(text, parse_mode='Markdown')
+    else:
+        await update.message.reply_text(MESSAGES[lang]['stats_error_text'])
+        return
 
 
 async def send_invoice_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
@@ -529,6 +578,56 @@ async def button_tap_handler(update: Update, context: ContextTypes.DEFAULT_TYPE)
             await query.message.reply_text(MESSAGES[lang]['sub_req'])
 
 
+# --- Profile Actions Handler ---
+async def profile_callback_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    query = update.callback_query
+    await query.answer()
+    user_id = update.effective_user.id
+
+    if query.data == "show_languages":
+        # Merging logic: Replace Profile text with Language menu
+        keyboard = [
+            [InlineKeyboardButton("English 🇺🇸", callback_data="set_lang_en"),
+             InlineKeyboardButton("Italiano 🇮🇹", callback_data="set_lang_it")],
+            [InlineKeyboardButton("Русский 🇷🇺", callback_data="set_lang_ru"),
+             InlineKeyboardButton("Deutsch 🇩🇪", callback_data="set_lang_de")],
+            [InlineKeyboardButton("⬅️ Back to Profile", callback_data="back_to_profile")]
+        ]
+        await query.edit_message_text(
+            MESSAGES[context.user_data.get('lang', 'en')]['choose_lang'],
+            reply_markup=InlineKeyboardMarkup(keyboard)
+        )
+
+    elif query.data == "back_to_profile":
+        # Returns user to the main profile view
+        # Use a shortcut: call the command logic but edit the message instead of replying
+        # You can refactor the profile text generation into a helper to avoid duplication
+        await profile_command_edit(update, context)
+
+    elif query.data == "sync_tz":
+        await query.edit_message_text("🔄 Please share your location using the button at the bottom.")
+        location_keyboard = [[KeyboardButton("📍 Share Location", request_location=True)]]
+        await context.bot.send_message(
+            chat_id=update.effective_chat.id,
+            text="Confirm location share:",
+            reply_markup=ReplyKeyboardMarkup(location_keyboard, resize_keyboard=True, one_time_keyboard=True)
+        )
+
+
+
+async def handle_location(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    user_location = update.message.location
+    user_id = update.effective_user.id
+
+    # Hide the big button immediately
+    status_msg = await update.message.reply_text("⏳ Syncing...", reply_markup=ReplyKeyboardRemove())
+
+    tz_name, offset = timezone_service.get_timezone_from_coords(user_location.latitude, user_location.longitude)
+    database_manager.update_user_timezone(user_id, tz_name, offset)
+
+    await status_msg.edit_text(f"✅ Timezone set to `{tz_name}`!")
+
+
 # --- Payment Handling ---
 async def precheckout_callback(update: Update, context: ContextTypes.DEFAULT_TYPE):
     await update.pre_checkout_query.answer(ok=True)
@@ -690,24 +789,25 @@ if __name__ == '__main__':
     application.add_handler(broadcast_conv)
     application.add_handler(CommandHandler("start", start_command))
     application.add_handler(CommandHandler("subscribe", send_invoice_command))
-    application.add_handler(CommandHandler("language", language_command))
+    application.add_handler(CommandHandler("profile", profile_command))
     application.add_handler(CommandHandler("feeds", user_feeds_command))
     application.add_handler(CommandHandler("get_now", get_news_now_command))
-    application.add_handler(CommandHandler("stats", stats_command))
+    application.add_handler(CommandHandler("stats", admin_stats_command))
     application.add_handler(CommandHandler("admin_feeds", admin_manage_feeds_command))
     application.add_handler(CommandHandler("about", contacts_command))
 
-    # Payment Handlers
+    # Callback Handlers
     application.add_handler(CallbackQueryHandler(button_tap_handler))
     application.add_handler(PreCheckoutQueryHandler(precheckout_callback))
+    application.add_handler(CallbackQueryHandler(profile_callback_handler, pattern="^(show_languages|back_to_profile|sync_tz)$"))
+
+    # Message Handlers
+    application.add_handler(MessageHandler(filters.LOCATION, handle_location))
     application.add_handler(MessageHandler(filters.SUCCESSFUL_PAYMENT, successful_payment_callback))
 
     # Job Queue for Daily Updates (e.g., 09:00 AM)
     job_queue = application.job_queue
-    job_queue.run_daily(
-        daily_broadcast,
-        time=datetime.time(hour=10, minute=20, second=0)
-    )
+    job_queue.run_daily(daily_broadcast, time=datetime.time(hour=9, minute=0, second=0))
 
-    print("Bot is live with Admin Mode and Stars Payment.")
+    print("Bot is live with Admin Mode and Stars Payment...")
     application.run_polling()
