@@ -576,7 +576,8 @@ async def send_news_to_chat(chat_id, context, feed_cache, is_premium):
         user_feeds = [random.choice(user_feeds)]
 
     full_message = ""
-    lang = context.user_data.get('lang') or database_manager.get_user_language(chat_id)
+    user_data = context.user_data if context.user_data is not None else {}
+    lang = user_data.get('lang') or database_manager.get_user_language(chat_id)
     if is_random:
         note = f"${MESSAGES[lang]['random_news']} \n\n"
         full_message += note
@@ -623,6 +624,7 @@ async def daily_broadcast(context: ContextTypes.DEFAULT_TYPE):
         try:
             # We pass is_premium=False to the sender function
             await send_news_to_chat(user_id, context, feed_cache, is_premium=False)
+            # Mandatory sleep to respect Telegram's flood limits (30 msgs/sec)
             await asyncio.sleep(0.05)
         except Exception as e:
             print(f"Error in Freemium broadcast for {user_id}: {e}")
@@ -704,7 +706,7 @@ if __name__ == '__main__':
     job_queue = application.job_queue
     job_queue.run_daily(
         daily_broadcast,
-        time=datetime.time(hour=10, minute=10, second=0)
+        time=datetime.time(hour=10, minute=20, second=0)
     )
 
     print("Bot is live with Admin Mode and Stars Payment.")
