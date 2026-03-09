@@ -11,6 +11,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 
+## [2.2.1] - 2026-04-09
+### Changed
+- Change JobQueue Schedule from 60 minutes to 30 minutes.
+
+
 ## [2.2.0] - 2026-04-08
 ### Added
 - Send Message to each user based on their timezone
