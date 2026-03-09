@@ -867,7 +867,7 @@ if __name__ == '__main__':
 
     # Job Queue for Daily Updates (e.g., 09:00 AM)
     job_queue = application.job_queue
-    job_queue.run_repeating(hourly_timezone_broadcast, interval=3600, first=10)
+    job_queue.run_repeating(hourly_timezone_broadcast, interval=1800, first=10)
     # job_queue.run_daily(daily_broadcast, time=datetime.time(hour=9, minute=0, second=0))
 
     print("Bot is live with Admin Mode and Stars Payment...")
